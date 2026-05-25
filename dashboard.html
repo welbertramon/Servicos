@@ -815,7 +815,7 @@ function renderKpiMaster(services, visits) {
 
   // Ordem: Serviços Vendidos | Visitas Técnicas | Receita de Serviços | Vendedores | Seções com Serviço
   const cards = [
-    { label: 'Serviços Vendidos',   value: fmtQtd(totalLinhas), sub: '',                      color: 'green',  icon: '🛠' },
+    { label: 'Qtd de Serviços Vendidos',   value: fmtQtd(totalLinhas), sub: '',                      color: 'green',  icon: '🛠' },
     { label: 'Visitas Técnicas',    value: fmtQtd(visitLinhas), sub: '',                       color: 'purple', icon: '🔍' },
     { label: 'Receita de Serviços', value: fmtBRL(totalVal),  sub: 'valor total',           color: 'blue',   icon: '💰' },
     { label: 'Vendedores',           value: sellers.size,       sub: 'com venda de serviço', color: 'teal',   icon: '👤' },
