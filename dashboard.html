@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Serviços</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <style>
+    :root {
+      --lm-green:   #44823C;
+      --lm-lime:    #BCE05E;
+      --lm-dark:    #253B35;
+      --lm-olive:   #B0B676;
+      --lm-slate:   #9EA5B6;
+
+      /* mapeamento semântico */
+      --green:        #44823C;
+      --green-light:  #e6f2e1;
+      --blue:         #253B35;
+      --blue-light:   #d3deda;
+      --amber:        #B0B676;
+      --amber-light:  #f0f0dc;
+      --rose:         #9EA5B6;
+      --rose-light:   #e8eaf0;
+      --purple:       #44823C;
+      --purple-light: #e6f2e1;
+      --teal:         #253B35;
+      --teal-light:   #d3deda;
+    }
+    body { background: #f0f2ee; font-family: 'Segoe UI', sans-serif; }
+    .kpi-card { transition: transform .15s, box-shadow .15s; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+    .chart-container { position: relative; height: 260px; }
+    .badge { font-size: .7rem; padding: 2px 8px; border-radius: 9999px; }
+    .table-row:hover { background: #f4f7f2; }
+    #config-panel { display: none; }
+    #config-panel.open { display: block; }
+    .loader { border: 3px solid #d3deda; border-top-color: #44823C; border-radius: 50%; width: 24px; height: 24px; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .filter-bar { background: white; border-radius: 12px; padding: 14px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 20px; }
+
+    /* section headings */
+    .section-title { color: #253B35; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 1rem; }
+
+    /* mobile */
+    @media (max-width: 640px) {
+      .lm-header .px-6 { padding-left: 1rem; padding-right: 1rem; }
+      main.px-6 { padding-left: .75rem; padding-right: .75rem; }
+      .chart-container { height: 220px; }
+      .filter-bar { padding: 12px; gap: 12px; }
+      .filter-bar > div { width: 100%; }
+      .filter-bar select, .filter-bar input[type=date] { width: 100%; }
+      .kpi-card { padding: .85rem; }
+      .kpi-card .text-2xl { font-size: 1.3rem; }
+      .card { padding: 1rem; }
+    }
+
+    /* KPI grid mobile: último card ímpar (sozinho) ocupa linha inteira e centraliza */
+    @media (max-width: 767px) {
+      #kpi-master > *:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        max-width: calc(50% - 8px);
+        margin: 0 auto;
+        width: 100%;
+      }
+    }
+
+    /* Nomes longos em tabelas: ellipsis com largura máxima */
+    .cell-name {
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 0.7rem;
+    }
+    @media (min-width: 640px) {
+      .cell-name { max-width: 220px; font-size: 0.75rem; }
+    }
+
+    /* ── TABS ── */
+    .tab-bar { background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,.06); display:flex; gap:4px; padding:4px; margin-bottom:20px; }
+    .tab-btn { flex:1; padding:8px 12px; border-radius:8px; font-size:.82rem; font-weight:600; cursor:pointer; border:none; background:transparent; color:#6b7280; transition:all .2s; }
+    .tab-btn.active { background:#44823C; color:white; }
+    .tab-btn:not(.active):hover { background:#f0f2ee; color:#253B35; }
+    .tab-pane { display:none; }
+    .tab-pane.active { display:block; }
+
+    /* ── INSIGHTS ── */
+    .insight-card { border-left:3px solid #BCE05E; background:#f8fdf4; border-radius:10px; padding:12px 14px; font-size:.82rem; color:#253B35; }
+    .insight-card b { color:#44823C; }
+    #ai-output { white-space:pre-wrap; font-size:.82rem; color:#253B35; line-height:1.6; }
+    .ai-loader { display:flex; align-items:center; gap:8px; color:#6b7280; font-size:.82rem; }
+    .ai-dot { width:8px; height:8px; border-radius:50%; background:#44823C; animation:aiPulse 1.2s ease-in-out infinite; }
+    .ai-dot:nth-child(2) { animation-delay:.2s; }
+    .ai-dot:nth-child(3) { animation-delay:.4s; }
+    @keyframes aiPulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1)} }
+
+    /* header gradient */
+    .lm-header { background: linear-gradient(135deg, #253B35 0%, #44823C 100%); }
+
+    /* btn styles */
+    .btn-primary   { background:#44823C; color:#fff; }
+    .btn-primary:hover { background:#356530; }
+    .btn-secondary { background:#BCE05E; color:#253B35; }
+    .btn-secondary:hover { background:#aad050; }
+    .btn-neutral   { background:#e5e7eb; color:#374151; }
+    .btn-neutral:hover { background:#d1d5db; }
+
+    /* chart card */
+    .card { background:white; border-radius:16px; box-shadow:0 1px 4px rgba(0,0,0,.07); padding:1.25rem; }
+    .card-title { font-weight:600; color:#253B35; margin-bottom:1rem; font-size:.95rem; }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #253B35 0%, #44823C 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .login-input {
+      width: 100%;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .2s;
+      box-sizing: border-box;
+    }
+    .login-input:focus { border-color: #44823C; box-shadow: 0 0 0 3px rgba(68,130,60,.12); }
+    .login-input.error { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.1); }
+    #login-error {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: .8rem;
+      text-align: center;
+    }
+    #app { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- TELA DE LOGIN                              -->
+<!-- ══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <!-- Logo -->
+    <div class="flex flex-col items-center mb-6">
+      <img src="logo.jpg" alt="Leroy Merlin" style="height:56px;width:auto;" class="mb-4">
+      <h1 class="text-lg font-bold text-center" style="color:#253B35">Painel de Serviços</h1>
+      <p class="text-xs text-gray-400 mt-1">Acesso restrito — faça login para continuar</p>
+    </div>
+
+    <!-- Formulário -->
+    <form onsubmit="doLogin(event)" class="flex flex-col gap-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Usuário</label>
+        <input id="login-user" type="text" class="login-input" placeholder="Digite seu usuário"
+               autocomplete="username" autocapitalize="none" spellcheck="false" />
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Senha</label>
+        <div class="relative">
+          <input id="login-pass" type="password" class="login-input" placeholder="Digite sua senha"
+                 autocomplete="current-password" style="padding-right:2.5rem" />
+          <button type="button" onclick="togglePass()" tabindex="-1"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm select-none">
+            👁
+          </button>
+        </div>
+      </div>
+
+      <div id="login-error">Usuário ou senha incorretos.</div>
+
+      <button type="submit"
+              class="w-full py-2.5 rounded-xl font-bold text-white text-sm btn-primary mt-1"
+              style="background:#44823C">
+        Entrar
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+<!-- APLICAÇÃO (oculta até login)               -->
+<!-- ══════════════════════════════════════════ -->
+<div id="app">
+
+<!-- ── HEADER ── -->
+<header class="lm-header shadow-md sticky top-0 z-30">
+  <div class="max-w-screen-xl mx-auto flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3">
+
+    <!-- Logo Leroy Merlin -->
+    <div class="flex items-center gap-4">
+      <img src="logo.jpg" alt="Leroy Merlin" style="height:40px;width:auto;" class="sm:h-[52px]">
+
+      <div class="border-l border-white/20 pl-3 sm:pl-4">
+        <h1 class="text-xs sm:text-sm font-bold text-white leading-none">Painel de Serviços</h1>
+        <p class="text-[10px] sm:text-xs text-lime-200 mt-0.5 leading-tight" id="last-update">Carregando...</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <div id="loader" class="loader hidden"></div>
+      <button onclick="loadData()" class="text-xs btn-secondary px-3 py-1.5 rounded-lg font-semibold">↻ Atualizar</button>
+    </div>
+  </div>
+</header>
+
+
+<!-- ── MAIN ── -->
+<main class="max-w-screen-xl mx-auto px-3 sm:px-6 py-4 sm:py-6" id="main-content">
+
+  <!-- FILTER BAR (compartilhado entre abas) -->
+  <div class="filter-bar">
+    <!-- mobile: 4 filtros em grid 2 colunas + botões -->
+    <div class="sm:hidden">
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div>
+          <label class="text-xs text-gray-500 font-medium block mb-1">Data início</label>
+          <select id="filter-start-m" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 font-medium block mb-1">Data fim</label>
+          <select id="filter-end-m" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 font-medium block mb-1">Vendedor</label>
+          <select id="filter-vendedor-m" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 font-medium block mb-1">Seção</label>
+          <select id="filter-secao-m" class="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5">
+            <option value="">Todas</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="applyFiltersMobile()" class="flex-1 text-sm btn-primary py-1.5 rounded-lg font-semibold">Filtrar</button>
+        <button onclick="clearFilters()" class="flex-1 text-sm btn-neutral py-1.5 rounded-lg">Limpar</button>
+      </div>
+    </div>
+
+    <!-- versão desktop (sm+) -->
+    <div class="hidden sm:flex flex-wrap items-end gap-3">
+      <div class="flex-1 min-w-[140px]">
+        <label class="text-xs text-gray-500 font-medium block mb-1">Data início</label>
+        <select id="filter-start" class="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[140px]">
+        <label class="text-xs text-gray-500 font-medium block mb-1">Data fim</label>
+        <select id="filter-end" class="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[140px]">
+        <label class="text-xs text-gray-500 font-medium block mb-1">Vendedor</label>
+        <select id="filter-vendedor" class="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[140px]">
+        <label class="text-xs text-gray-500 font-medium block mb-1">Seção</label>
+        <select id="filter-secao" class="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="applyFilters()" class="text-sm btn-primary px-4 py-1.5 rounded-lg font-semibold whitespace-nowrap">Filtrar</button>
+        <button onclick="clearFilters()" class="text-sm btn-neutral px-3 py-1.5 rounded-lg whitespace-nowrap">Limpar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TABS ── -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('resumo', this)">Resumo</button>
+    <button class="tab-btn" onclick="switchTab('analises', this)">Análises</button>
+  </div>
+
+  <!-- ══════════ ABA 1: RESUMO ══════════ -->
+  <div id="tab-resumo" class="tab-pane active">
+
+    <!-- Destaque Receita Total -->
+    <div id="receita-destaque" class="mb-5 rounded-2xl px-6 py-4 flex flex-wrap items-center justify-between gap-3"
+         style="background:linear-gradient(135deg,#253B35 0%,#44823C 100%)">
+      <div>
+        <p class="text-xs font-semibold text-lime-300 uppercase tracking-widest mb-1">Receita Total de Serviços</p>
+        <p class="text-3xl sm:text-4xl font-bold text-white" id="receita-total-destaque">—</p>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-lime-200 mb-0.5" id="destaque-linhas">—</p>
+        <p class="text-xs text-lime-200" id="destaque-ticket">—</p>
+      </div>
+    </div>
+
+    <section class="mb-6">
+      <h2 class="section-title">KPIs Master</h2>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="kpi-master"></div>
+    </section>
+
+    <!-- Gráficos resumo -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="card">
+        <h3 class="card-title">Top 10 Vendedores por Serviços (R$)</h3>
+        <div id="container-vendedor-val" style="position:relative"><canvas id="chart-vendedor-val"></canvas></div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Serviços por Seção — Valor (R$)</h3>
+        <!-- Wrapper com scroll horizontal -->
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+          <div id="container-secao-valor" style="position:relative;height:440px;min-width:100%">
+            <canvas id="chart-secao-valor"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ ABA 2: ANÁLISES ══════════ -->
+  <div id="tab-analises" class="tab-pane">
+    <!-- Vendedores + Seções -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="card">
+        <h3 class="card-title">Vendedores com Vendas de Serviços</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-xs border-b" style="color:#9EA5B6">
+                <th class="text-left pb-2">#</th>
+                <th class="text-left pb-2">Vendedor</th>
+                <th class="text-right pb-2">Linhas</th>
+                <th class="text-right pb-2">R$ Total</th>
+                <th class="text-right pb-2">% do Total</th>
+              </tr>
+            </thead>
+            <tbody id="table-vendedores"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">Serviços por Seção — Detalhado</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-xs border-b" style="color:#9EA5B6">
+                <th class="text-left pb-2">Seção</th>
+                <th class="text-right pb-2">Linhas</th>
+                <th class="text-right pb-2">R$ Total</th>
+                <th class="text-right pb-2">% do Total</th>
+              </tr>
+            </thead>
+            <tbody id="table-secoes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Itens + Penetração -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="card">
+        <h3 class="card-title">Top 10 Itens de Serviço</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-xs border-b" style="color:#9EA5B6">
+                <th class="text-left pb-2">Item</th>
+                <th class="text-right pb-2">Linhas</th>
+                <th class="text-right pb-2">R$ Total</th>
+              </tr>
+            </thead>
+            <tbody id="table-top-itens"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="flex items-start justify-between mb-1">
+          <h3 class="card-title mb-0">Penetração de Serviços no Pedido</h3>
+          <span id="pct-geral-badge" class="badge text-xs font-bold px-2 py-1 rounded-full" style="background:#e6f2e1;color:#44823C"></span>
+        </div>
+        <p class="text-xs text-gray-400 mb-3">% do valor de serviços sobre o total do pedido</p>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-xs border-b" style="color:#9EA5B6">
+                <th class="text-left pb-2">Seção</th>
+                <th class="text-right pb-2">Serviços (R$)</th>
+                <th class="text-right pb-2">Total Pedido (R$)</th>
+                <th class="text-right pb-2">Penetração</th>
+              </tr>
+            </thead>
+            <tbody id="table-penetracao"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insights IA — dentro da aba Análises -->
+    <div class="card mb-6">
+      <h3 class="card-title">Insights</h3>
+      <div class="flex flex-wrap items-end gap-3 mb-3">
+        <div class="flex-1 min-w-[220px]">
+          <label class="block text-xs font-semibold text-gray-600 mb-1">
+            Gemini API Key
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="font-normal text-blue-500 hover:underline ml-1">(obter chave grátis)</a>
+          </label>
+          <input id="gemini-key" type="password" placeholder="AIza..."
+            class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-green-300" />
+        </div>
+        <button onclick="runGemini()" class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap">Gerar com IA</button>
+        <button onclick="runInsightsLocais()" class="btn-neutral px-4 py-2 rounded-lg text-sm whitespace-nowrap">Insights Automáticos</button>
+      </div>
+      <p class="text-xs text-gray-400 mb-4">A chave fica salva no navegador. Sem chave, use "Insights Automáticos".</p>
+
+      <div id="insights-placeholder" class="text-center py-8 text-gray-400 text-sm">
+        Clique em <b>Gerar com IA</b> ou <b>Insights Automáticos</b> para analisar os dados.
+      </div>
+      <div id="insights-loading" class="hidden py-6 flex flex-col items-center gap-3">
+        <div class="ai-loader">
+          <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
+        </div>
+        <p class="text-xs text-gray-400">Analisando dados com Gemini...</p>
+      </div>
+      <div id="insights-content" class="hidden">
+        <div class="flex items-center gap-2 mb-3">
+          <span id="insights-source-badge" class="badge" style="background:#e6f2e1;color:#44823C">Auto</span>
+          <span class="font-semibold text-sm" style="color:#253B35">Análise dos Dados de Serviços</span>
+        </div>
+        <div id="insight-cards" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"></div>
+        <div id="ai-output" class="hidden p-4 rounded-xl" style="background:#f8fdf4;border:1px solid #BCE05E"></div>
+      </div>
+    </div>
+
+  </div><!-- /tab-analises -->
+
+  <!-- ── NO DATA MESSAGE ── -->
+  <div id="no-data-msg" class="hidden text-center py-16">
+    <div class="text-6xl mb-4">📊</div>
+    <h3 class="text-xl font-semibold mb-2" style="color:#253B35">Nenhum dado carregado</h3>
+    <p class="text-gray-400 mb-4">Aguardando conexão com a planilha...</p>
+  </div>
+
+</main>
+
+<script>
+// Registra plugin de rótulos de dados globalmente
+Chart.register(ChartDataLabels);
+
+// ───────────────────────────────────────────────
+// CONFIG & STATE
+// ───────────────────────────────────────────────
+const CFG_KEY = 'painel_cfg';
+let rawData = [];
+let filteredData = [];
+const charts = {};
+
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrfxOUIuYQ_4COBkwSUTxDf9qXAOlTOAGkEAuvNpaHt98DUEN3VGKGaKB1sVyrPZy6/exec';
+
+function loadConfig() { /* URL fixa — nada a carregar */ }
+function saveConfig() { /* URL fixa — nada a salvar */ }
+
+// Coluna M = "Status do produto" — serviços começam com SERVICO, exceto CANCELADO
+function isService(row) {
+  const val = (getField(row, 'Status do produto', 'status do produto') || '').toUpperCase().trim();
+  return val.startsWith('SERVICO') && !val.includes('CANCELADO');
+}
+
+// Coluna J = "Descrição" — visitas técnicas começam com VISITA
+function isVisit(row) {
+  const val = (getDesc(row) || '').toUpperCase().trim();
+  return val.startsWith('VISITA');
+}
+
+// Seção da linha (coluna K)
+function getSecao(row) {
+  return (getField(row, 'Seção', 'Secao', 'seção', 'secao') ||
+    Object.entries(row).find(([k]) => /se[çc][aã]o/i.test(k))?.[1] || '').toUpperCase().trim();
+}
+
+// ───────────────────────────────────────────────
+// DATA LOADING — via Google Apps Script
+// ───────────────────────────────────────────────
+async function loadData() {
+  let url = APPS_SCRIPT_URL + '?cb=' + Date.now();
+  setLoading(true);
+
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const json = await res.json();
+
+    if (json.erro) throw new Error(json.erro);
+    if (!json.rows || json.rows.length === 0) {
+      showMsgInfo('A planilha está vazia. Adicione dados e tente novamente.');
+      return;
+    }
+
+    rawData = json.rows;
+    populateFilters();
+    filteredData = [...rawData];
+    renderAll();
+
+    const ts = new Date().toLocaleString('pt-BR');
+    const svcCount = rawData.filter(r => isService(r)).length;
+    document.getElementById('last-update').textContent = `Atualizado: ${ts} — ${svcCount} serviços`;
+    showToast(`✅ ${svcCount} serviços carregados!`, 'green');
+
+  } catch (e) {
+    showErroAcesso(e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function showErroAcesso(detalhe) {
+  document.getElementById('no-data-msg').classList.remove('hidden');
+  document.getElementById('no-data-msg').innerHTML = `
+    <div class="text-5xl mb-4">🔒</div>
+    <h3 class="text-lg font-bold mb-2" style="color:#253B35">Não foi possível acessar a planilha</h3>
+    <p class="text-gray-500 text-sm mb-1">Detalhe: <code class="bg-gray-100 px-1 rounded">${detalhe}</code></p>
+    <div class="mt-4 text-left max-w-md mx-auto bg-white rounded-xl p-4 shadow text-sm text-gray-700 space-y-2">
+      <p class="font-semibold" style="color:#44823C">Siga estes passos no Google Sheets:</p>
+      <ol class="list-decimal pl-5 space-y-1">
+        <li><b>Compartilhar</b> a planilha → <b>"Qualquer pessoa com o link"</b> pode visualizar</li>
+        <li><b>Arquivo → Compartilhar → Publicar na Web</b> → selecione a aba → formato <b>CSV</b> → Publicar</li>
+        <li>Volte aqui e clique em <b>Salvar e Atualizar</b></li>
+      </ol>
+    </div>
+    <button onclick="loadData()" class="mt-4 btn-primary px-5 py-2 rounded-lg font-semibold text-sm">↻ Tentar novamente</button>
+    <button onclick="loadDemoData()" class="mt-2 ml-2 btn-secondary px-5 py-2 rounded-lg font-semibold text-sm">Ver Demo</button>
+  `;
+  document.getElementById('kpi-master').innerHTML = '';
+}
+
+function showMsgInfo(msg) {
+  document.getElementById('no-data-msg').classList.remove('hidden');
+  document.getElementById('no-data-msg').innerHTML = `
+    <div class="text-5xl mb-4">📋</div>
+    <h3 class="text-lg font-semibold mb-2" style="color:#253B35">${msg}</h3>
+    <button onclick="loadDemoData()" class="mt-2 btn-secondary px-5 py-2 rounded-lg font-semibold text-sm">Ver Demo</button>
+  `;
+}
+
+function parseCSV(text) {
+  // Remove BOM e normaliza quebras de linha Windows (\r\n) e Mac (\r)
+  text = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const lines = text.split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  const headers = parseCSVLine(lines[0]).map(h => h.trim());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const vals = parseCSVLine(lines[i]);
+    // Ignora linhas completamente vazias
+    if (vals.every(v => !v.trim())) continue;
+    const obj = {};
+    headers.forEach((h, idx) => { obj[h] = (vals[idx] || '').trim(); });
+    rows.push(obj);
+  }
+  return rows;
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { inQuotes = !inQuotes; }
+    else if (c === ',' && !inQuotes) { result.push(current); current = ''; }
+    else { current += c; }
+  }
+  result.push(current);
+  return result;
+}
+
+function toNum(v) {
+  if (v === undefined || v === null || v === '') return 0;
+  // Remove R$, espaços, pontos de milhar; troca vírgula decimal por ponto
+  const s = String(v).replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.').replace(/[^\d.\-]/g, '');
+  return parseFloat(s) || 0;
+}
+
+// Busca segura de campos com possíveis variações de nome de coluna
+function getField(row, ...keys) {
+  for (const k of keys) {
+    if (row[k] !== undefined && row[k] !== '') return row[k];
+  }
+  // Busca parcial case-insensitive
+  const lower = keys[0].toLowerCase();
+  const found = Object.entries(row).find(([k]) => k.toLowerCase().includes(lower));
+  return found ? found[1] : '';
+}
+
+function getValorItem(row)  { return toNum(getField(row, 'Valor total do Item', 'Valor Total do Item', 'valor total do item')); }
+function getValorTotal(row) { return toNum(getField(row, 'Valor Total', 'Valor total', 'valor total')); } // col E — total do pedido
+function getQtd(row)        { return toNum(getField(row, 'Quantidade', 'quantidade', 'Qtd')); }
+function getPedido(row)     { return getField(row, 'Número do pedido', 'Numero do pedido', 'número do pedido') || Math.random(); }
+function getLDAP(row)       { return getField(row, 'LDAP', 'ldap', 'Vendedor'); }
+function getDesc(row)       { return getField(row, 'Descrição', 'Descricao', 'descricao', 'Descrição'); }
+function getCanal(row)      { return getField(row, 'Loja/Canal', 'Canal', 'canal'); }
+function getStatus(row)     { return getField(row, 'Status do Pedido de Venda', 'Status do Pedido', 'status'); }
+function getData(row)       { return getField(row, 'Data de Criação', 'Data de Criacao', 'Data'); }
+
+// ───────────────────────────────────────────────
+// DEMO DATA — espelha a estrutura real do Leroy Merlin
+// Coluna M (Status do produto): SERVICO* = serviço
+// Coluna J (Descrição): começa com Visita = visita técnica
+// ───────────────────────────────────────────────
+function loadDemoData() {
+  const sellers = [
+    '51045709 - ROBSON BARBOSA','51040893 - ALEXANDRE COSTA','51014804 - RENATO WAGNER',
+    '51004077 - REINALDO GOMES','51072477 - LAIS JULIA','51064196 - GUILHERME TEIXEIRA',
+    '43000000 - ECOMMERCE','51070638 - RICARDO TADEU'
+  ];
+  const channels = ['0020-LOJA BH SUL/Loja','0020-LOJA BH SUL/Ecommerce','0020-LOJA BH SUL/Televendas'];
+  const statuses = ['PAGO','FATURADO_TOTAL','FATURADO_PARCIAL'];
+
+  // Cada item define: Seção (col K), Descrição (col J), Status do produto (col M)
+  const catalog = [
+    // ── SERVIÇOS (col M começa com SERVICO) ──
+    { secao:'SERVICOS', desc:'Serviço de Instalação Elétrica',    statusProd:'SERVICO' },
+    { secao:'SERVICOS', desc:'Serviço de Montagem de Móveis',     statusProd:'SERVICO' },
+    { secao:'SERVICOS', desc:'Serviço de Pintura Residencial',    statusProd:'SERVICO_PINTURA' },
+    { secao:'SERVICOS', desc:'Serviço de Hidráulica',             statusProd:'SERVICO' },
+    { secao:'INSTALACAO', desc:'Instalação de Piso Laminado',     statusProd:'SERVICO_INSTALACAO' },
+    { secao:'INSTALACAO', desc:'Instalação de Box Banheiro',      statusProd:'SERVICO_INSTALACAO' },
+    { secao:'MONTAGEM',   desc:'Montagem de Armário',             statusProd:'SERVICO_MONTAGEM' },
+    { secao:'MONTAGEM',   desc:'Montagem de Estante',             statusProd:'SERVICO_MONTAGEM' },
+    // ── VISITAS TÉCNICAS (col J começa com Visita, col M = SERVICO) ──
+    { secao:'SERVICOS', desc:'Visita Técnica Padrão',             statusProd:'SERVICO' },
+    { secao:'SERVICOS', desc:'Visita Técnica de Projeto',         statusProd:'SERVICO' },
+    { secao:'SERVICOS', desc:'Visita de Avaliação',               statusProd:'SERVICO' },
+    // ── PRODUTOS (col M NÃO começa com SERVICO) ──
+    { secao:'CERAMICA',  desc:'Piso Cerâmico 60x60',             statusProd:'PENDENTE' },
+    { secao:'CERAMICA',  desc:'Porcelanato Marmorizado',          statusProd:'EM_SEPARACAO' },
+    { secao:'MATERIAIS', desc:'Argamassa Graute 20kg',            statusProd:'PENDENTE' },
+    { secao:'MATERIAIS', desc:'Rejunte Branco',                   statusProd:'FATURADO' },
+    { secao:'PINTURA',   desc:'Tinta Acrílica 18L',               statusProd:'PENDENTE' },
+    { secao:'JARDIM',    desc:'Conjunto de Jardinagem',           statusProd:'FATURADO' },
+    { secao:'FERRAMENTAS', desc:'Furadeira de Impacto',           statusProd:'PENDENTE' },
+  ];
+
+  rawData = [];
+  const baseDate = new Date('2026-04-01');
+  for (let i = 0; i < 400; i++) {
+    const item   = catalog[Math.floor(Math.random() * catalog.length)];
+    const seller = sellers[Math.floor(Math.random() * sellers.length)];
+    const d = new Date(baseDate);
+    d.setDate(d.getDate() + Math.floor(Math.random() * 52));
+    const qty   = Math.floor(Math.random() * 4) + 1;
+    const price = +(Math.random() * 900 + 80).toFixed(2);
+    rawData.push({
+      'Data de Criação':          d.toISOString().slice(0, 10),
+      'Status do Pedido de Venda': statuses[Math.floor(Math.random() * statuses.length)],
+      'Loja/Canal':               channels[Math.floor(Math.random() * channels.length)],
+      'Número do pedido':         'PED' + (100000 + Math.floor(i / 3)), // ~3 itens por pedido
+      'Valor Total':              ((qty * price) * (1 + Math.random() * 3)).toFixed(2), // pedido maior que o item
+      'Nome do Cliente':          'Cliente Demo',
+      'CPF/CNPJ/Passaporte':      '000.000.000-00',
+      'Justificativa':            '',
+      'LM':                       '9' + String(i).padStart(7, '0'),
+      'Descrição':                item.desc,           // ← col J
+      'Seção':                    item.secao,           // ← col K
+      'Top':                      'TOP1',
+      'Status do produto':        item.statusProd,      // ← col M  ★ critério de serviço
+      'Quantidade':               qty,
+      'Preço Unitário':           price.toFixed(2),
+      'Desconto Pontual':         '',
+      'Valor total do Item':      (qty * price).toFixed(2),
+      'LDAP':                     seller,
+    });
+  }
+
+  populateFilters();
+  filteredData = [...rawData];
+  renderAll();
+  const svcCountDemo = rawData.filter(r => isService(r)).length;
+  document.getElementById('last-update').textContent = `Demo carregado: ${new Date().toLocaleString('pt-BR')} — ${svcCountDemo} serviços`;
+}
+
+// ───────────────────────────────────────────────
+// FILTERS
+// ───────────────────────────────────────────────
+// Retorna o elemento por id, tentando sufixo -m se não achar (mobile duplicates)
+function $id(id) { return document.getElementById(id) || document.getElementById(id + '-m') || { value: '', innerHTML: '' }; }
+function $val(id) {
+  const d = document.getElementById(id);
+  const m = document.getElementById(id + '-m');
+  return (d && d.value) || (m && m.value) || '';
+}
+function $set(id, val) {
+  [id, id + '-m'].forEach(i => { const el = document.getElementById(i); if (el) el.value = val; });
+}
+function $html(id, html) {
+  [id, id + '-m'].forEach(i => { const el = document.getElementById(i); if (el) el.innerHTML = html; });
+}
+
+function populateFilters() {
+  const serviceData = rawData.filter(r => isService(r));
+
+  // Datas disponíveis (para selects mobile)
+  const datas = [...new Set(rawData.map(r => getData(r)).filter(Boolean))].sort();
+  const fmtDate = d => { try { const [y,m,dd] = d.split('-'); return `${dd}/${m}/${y}`; } catch(e) { return d; } };
+  const dOpts = '<option value="">Todas</option>' + datas.map(d => `<option value="${d}">${fmtDate(d)}</option>`).join('');
+  $html('filter-start', dOpts);
+  $html('filter-end',   dOpts);
+
+  // Vendedor — apenas vendedores com dados de serviço
+  const vendedores = [...new Set(serviceData.map(r => getLDAP(r)).filter(Boolean))].sort();
+  const vOpts = '<option value="">Todos</option>' +
+    vendedores.map(v => { const nome = v.split(' - ').slice(1).join(' - ') || v; return `<option value="${v}">${nome}</option>`; }).join('');
+  $html('filter-vendedor', vOpts);
+
+  // Seção — apenas seções com dados de serviço
+  const secoes = [...new Set(serviceData.map(r => getSecao(r)).filter(Boolean))].sort();
+  const sOpts = '<option value="">Todas</option>' + secoes.map(s => `<option value="${s}">${s}</option>`).join('');
+  $html('filter-secao', sOpts);
+}
+
+function applyFilters() {
+  const start    = $val('filter-start');
+  const end      = $val('filter-end');
+  const vendedor = $val('filter-vendedor');
+  const secao    = $val('filter-secao');
+
+  filteredData = rawData.filter(r => {
+    const d = getData(r);
+    if (start    && d < start) return false;
+    if (end      && d > end)   return false;
+    if (vendedor && getLDAP(r) !== vendedor) return false;
+    if (secao    && getSecao(r) !== secao)   return false;
+    return true;
+  });
+  renderAll();
+}
+
+function applyFiltersMobile() {
+  // Sincroniza valores dos inputs mobile para os desktop antes de filtrar
+  ['filter-start','filter-end','filter-vendedor','filter-secao'].forEach(id => {
+    const m = document.getElementById(id + '-m');
+    const d = document.getElementById(id);
+    if (m && d) d.value = m.value;
+  });
+  applyFilters();
+}
+
+function clearFilters() {
+  ['filter-start','filter-end','filter-vendedor','filter-secao'].forEach(id => $set(id, ''));
+  filteredData = [...rawData];
+  renderAll();
+}
+
+// ───────────────────────────────────────────────
+// RENDER MAIN
+// ───────────────────────────────────────────────
+function renderAll() {
+  if (!filteredData.length) { showNoData(); return; }
+  document.getElementById('no-data-msg').classList.add('hidden');
+
+  // Diagnóstico: verifica colunas encontradas
+  const cols = Object.keys(filteredData[0]);
+  const temSecao = cols.some(c => c.includes('Se') && c.includes('o'));
+  const temValor = cols.some(c => c.includes('Valor') || c.includes('valor'));
+  if (!temSecao || !temValor) {
+    showToast(`⚠ Colunas inesperadas. Encontradas: ${cols.slice(0,4).join(', ')}...`, 'amber');
+  }
+
+  const services = filteredData.filter(isService);
+  const visits   = filteredData.filter(isVisit);
+
+  renderKpiMaster(services, visits);
+  renderVendedorChart(services);
+  renderSecaoValorChart(services);
+  renderVendedoresTable(services);
+  renderSecoesTable(services);
+  renderTopItens(services);
+  renderPenetracao(services, filteredData);
+}
+
+// ───────────────────────────────────────────────
+// KPI MASTER
+// ───────────────────────────────────────────────
+function renderKpiMaster(services, visits) {
+  const totalLinhas = services.length;           // contagem de linhas de serviço
+  const totalVal    = services.reduce((s, r) => s + getValorItem(r), 0);
+  const visitLinhas = visits.length;             // contagem de linhas de visita
+  const sellers  = new Set(services.filter(r => getLDAP(r) && !getLDAP(r).toUpperCase().includes('ECOMMERCE')).map(r => getLDAP(r)));
+  const secoes   = new Set(services.map(r => getSecao(r)).filter(Boolean));
+
+  // Ordem: Serviços Vendidos | Visitas Técnicas | Receita de Serviços | Vendedores | Seções com Serviço
+  const cards = [
+    { label: 'Serviços Vendidos',   value: fmtQtd(totalLinhas), sub: '',                      color: 'green',  icon: '🛠' },
+    { label: 'Visitas Técnicas',    value: fmtQtd(visitLinhas), sub: '',                       color: 'purple', icon: '🔍' },
+    { label: 'Receita de Serviços', value: fmtBRL(totalVal),  sub: 'valor total',           color: 'blue',   icon: '💰' },
+    { label: 'Vendedores',           value: sellers.size,       sub: 'com venda de serviço', color: 'teal',   icon: '👤' },
+    { label: 'Seções com Serviço',  value: secoes.size,        sub: 'seções distintas',     color: 'rose',   icon: '📂' },
+  ];
+
+  // Destaque receita total
+  const ticket = totalLinhas > 0 ? totalVal / totalLinhas : 0;
+  const dEl = document.getElementById('receita-total-destaque');
+  const dLin = document.getElementById('destaque-linhas');
+  const dTick = document.getElementById('destaque-ticket');
+  if (dEl) dEl.textContent = fmtBRL(totalVal);
+  if (dLin) dLin.textContent = `${fmtQtd(totalLinhas)} linhas de serviço`;
+  if (dTick) dTick.textContent = `Ticket médio: ${fmtBRL(ticket)}`;
+
+  document.getElementById('kpi-master').innerHTML = cards.map(c => `
+    <div class="kpi-card bg-white rounded-2xl shadow-sm p-4 border-l-4" style="border-color:var(--${c.color})">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xl">${c.icon}</span>
+        ${c.sub ? `<span class="badge" style="background:var(--${c.color}-light);color:var(--${c.color})">${c.sub}</span>` : ''}
+      </div>
+      <div class="text-2xl font-bold text-gray-800">${c.value}</div>
+      <div class="text-xs text-gray-500 mt-1">${c.label}</div>
+    </div>
+  `).join('');
+}
+
+// ───────────────────────────────────────────────
+// CHARTS
+// ───────────────────────────────────────────────
+function mkChart(id, type, data, options = {}) {
+  if (charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  charts[id] = new Chart(ctx, { type, data, options: { responsive: true, maintainAspectRatio: false, ...options } });
+}
+
+const PALETTE = ['#44823C','#BCE05E','#253B35','#B0B676','#9EA5B6','#6aab5e','#8ec87a','#d4e8a0','#7a8f6a','#c5cfd8'];
+
+// Quebra string em array de linhas respeitando palavras
+function wrapLabel(str, maxChars) {
+  const words = str.split(' ');
+  const lines = [];
+  let current = '';
+  for (const w of words) {
+    if ((current + (current ? ' ' : '') + w).length <= maxChars) {
+      current += (current ? ' ' : '') + w;
+    } else {
+      if (current) lines.push(current);
+      current = w.length > maxChars ? w.slice(0, maxChars - 1) + '…' : w;
+    }
+  }
+  if (current) lines.push(current);
+  return lines; // Chart.js aceita array → renderiza em múltiplas linhas
+}
+
+// Gráfico: Vendas de Serviços por Vendedor (R$) — barras horizontais
+function setChartHeight(containerId, items, pxPerItem, min, max) {
+  const h = Math.min(Math.max(items * pxPerItem, min), max);
+  const el = document.getElementById(containerId);
+  if (el) el.style.height = h + 'px';
+}
+
+function renderVendedorChart(services) {
+  const by = groupByFn(services, r => getLDAP(r));
+  const sorted = Object.entries(by)
+    .map(([ldap, rows]) => ({
+      name: ldap.split(' - ').slice(1).join(' - ') || ldap,
+      val:  rows.reduce((s, r) => s + getValorItem(r), 0),
+    }))
+    .sort((a, b) => b.val - a.val)
+    .slice(0, 10);
+
+  // Altura dinâmica: 44px por vendedor, mínimo 360px para igualar o gráfico de seções
+  setChartHeight('container-vendedor-val', sorted.length, 44, 440, 560);
+
+  mkChart('chart-vendedor-val', 'bar', {
+    labels: sorted.map(r => r.name),
+    datasets: [{ label: 'Receita (R$)', data: sorted.map(r => r.val), backgroundColor: PALETTE }]
+  }, {
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      datalabels: {
+        anchor: 'end',
+        align: 'end',
+        color: '#253B35',
+        font: { size: 11, weight: '600' },
+        formatter: v => 'R$ ' + fmtK(v),
+        clip: false,
+      }
+    },
+    layout: { padding: { right: 72 } },
+    scales: {
+      x: { display: false, grid: { display: false }, border: { display: false } },
+      y: {
+        grid: { display: false }, border: { display: false },
+        ticks: {
+          font: { size: 10 },
+          callback: function(val) {
+            return wrapLabel(this.getLabelForValue(val), 18);
+          }
+        }
+      }
+    }
+  });
+}
+
+// Gráfico: Serviços por Seção — Valor (R$) — todas as seções
+function renderSecaoValorChart(services) {
+  const by = groupByFn(services, r => getSecao(r));
+  // Ordena por valor desc, sem limite
+  const sorted = Object.entries(by)
+    .map(([sec, rows]) => ({ sec, val: rows.reduce((a,r) => a+getValorItem(r),0) }))
+    .sort((a,b) => b.val - a.val);
+  const labels = sorted.map(s => s.sec);
+  const vals   = sorted.map(s => s.val);
+
+  // Largura dinâmica: 80px por seção, mínimo para mostrar 8 sem scroll
+  const barW = 80;
+  const minVisible = 8;
+  const containerEl = document.getElementById('container-secao-valor');
+  if (containerEl) {
+    const totalW = Math.max(labels.length * barW, minVisible * barW);
+    containerEl.style.width = totalW + 'px';
+    containerEl.style.minWidth = '100%';
+  }
+
+  mkChart('chart-secao-valor', 'bar', {
+    labels, datasets: [{ label: 'Valor (R$)', data: vals, backgroundColor: PALETTE }]
+  }, {
+    plugins: {
+      legend: { display: false },
+      datalabels: {
+        anchor: 'end',
+        align: 'end',
+        color: '#253B35',
+        font: { size: 11, weight: '600' },
+        formatter: v => 'R$ ' + fmtK(v),
+        clip: false,
+      }
+    },
+    layout: { padding: { top: 28, bottom: 4 } },
+    scales: {
+      y: { display: false, grid: { display: false }, border: { display: false } },
+      x: {
+        grid: { display: false }, border: { display: false },
+        ticks: {
+          font: { size: 9 },
+          maxRotation: 45,
+          minRotation: 0,
+          autoSkip: false,
+          callback: function(val) {
+            const lbl = this.getLabelForValue(val);
+            // Trunca apenas se muito longo, sem quebrar em linhas (rótulo rotacionado)
+            return lbl.length > 14 ? lbl.slice(0, 13) + '…' : lbl;
+          }
+        }
+      }
+    }
+  });
+}
+
+// ───────────────────────────────────────────────
+// TABLES
+// ───────────────────────────────────────────────
+function renderVendedoresTable(services) {
+  const totalVal = services.reduce((s, r) => s + getValorItem(r), 0);
+  const by = groupByFn(services, r => getLDAP(r));
+  const rows = Object.entries(by)
+    .map(([ldap, rows]) => ({
+      name: ldap.split(' - ').slice(1).join(' - ') || ldap,
+      qtd:  rows.length,
+      val:  rows.reduce((s, r) => s + getValorItem(r), 0),
+    }))
+    .sort((a, b) => b.val - a.val);
+
+  document.getElementById('table-vendedores').innerHTML = rows.map((r, i) => {
+    const pct = totalVal > 0 ? (r.val / totalVal * 100).toFixed(1) : '0.0';
+    const barW = Math.round(r.val / totalVal * 50);
+    return `
+    <tr class="table-row border-b border-gray-50">
+      <td class="py-2 pr-2 text-gray-400 font-mono text-xs whitespace-nowrap">${i + 1}</td>
+      <td class="py-2 text-gray-700 font-medium cell-name">${r.name}</td>
+      <td class="py-2 text-right font-mono text-xs whitespace-nowrap">${fmtQtd(r.qtd)}</td>
+      <td class="py-2 text-right font-mono text-xs whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
+      <td class="py-2 text-right text-xs whitespace-nowrap">
+        <div class="flex items-center justify-end gap-1">
+          <div class="h-1.5 rounded-full" style="width:${barW}px;background:#BCE05E;opacity:.85"></div>
+          <span class="font-mono" style="color:#253B35">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="text-center py-8 text-gray-400 text-sm">Nenhum serviço encontrado</td></tr>';
+}
+
+function renderSecoesTable(services) {
+  const totalVal = services.reduce((s, r) => s + getValorItem(r), 0);
+  const by = groupByFn(services, r => getSecao(r));
+  const rows = Object.entries(by)
+    .map(([sec, rows]) => ({
+      sec,
+      qtd: rows.length,
+      val: rows.reduce((s, r) => s + getValorItem(r), 0),
+    }))
+    .sort((a, b) => b.val - a.val);
+
+  document.getElementById('table-secoes').innerHTML = rows.map(r => `
+    <tr class="table-row border-b border-gray-50">
+      <td class="py-2 text-gray-700 font-medium cell-name">${r.sec}</td>
+      <td class="py-2 text-right font-mono text-xs whitespace-nowrap">${fmtQtd(r.qtd)}</td>
+      <td class="py-2 text-right font-mono text-xs whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
+      <td class="py-2 text-right text-xs whitespace-nowrap">
+        <div class="flex items-center justify-end gap-1">
+          <div class="h-1.5 rounded-full" style="width:${Math.round(r.val/totalVal*60)}px;background:#BCE05E;opacity:.8"></div>
+          <span class="font-mono">${totalVal > 0 ? (r.val/totalVal*100).toFixed(1) : 0}%</span>
+        </div>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm">Nenhum serviço encontrado</td></tr>';
+}
+
+function renderTopItens(services) {
+  const by = groupByFn(services, r => getDesc(r));
+  const rows = Object.entries(by)
+    .map(([desc, rows]) => ({
+      desc,
+      qtd: rows.length,
+      val: rows.reduce((s, r) => s + getValorItem(r), 0),
+    }))
+    .sort((a, b) => b.val - a.val)
+    .slice(0, 10);
+
+  document.getElementById('table-top-itens').innerHTML = rows.map(r => `
+    <tr class="table-row border-b border-gray-50">
+      <td class="py-2 text-gray-700 cell-name">${r.desc}</td>
+      <td class="py-2 text-right font-mono text-xs whitespace-nowrap">${fmtQtd(r.qtd)}</td>
+      <td class="py-2 text-right font-mono text-xs whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="3" class="text-center py-8 text-gray-400 text-sm">Nenhum item encontrado</td></tr>';
+}
+
+// ───────────────────────────────────────────────
+// PENETRAÇÃO DE SERVIÇOS NO PEDIDO
+// Lógica: para cada pedido único que possui ≥1 item de serviço,
+// soma o Valor Total do pedido (col E) e o Valor do item de serviço.
+// % = ΣValorItemServiço / ΣValorTotalPedido × 100
+// ───────────────────────────────────────────────
+function renderPenetracao(services, allData) {
+  // Monta mapa pedido → Valor Total (col E) — usando todos os dados
+  const valorTotalPorPedido = {};
+  allData.forEach(r => {
+    const ped = getPedido(r);
+    const vt  = getValorTotal(r);
+    if (ped && vt > 0) valorTotalPorPedido[ped] = vt; // col E é o mesmo para todos os itens do pedido
+  });
+
+  // Agrupa serviços por seção
+  const bySecao = groupByFn(services, r => getSecao(r));
+
+  // Para cada seção: soma valor dos itens de serviço e o valor total dos pedidos envolvidos
+  const linhas = Object.entries(bySecao).map(([sec, rows]) => {
+    const valorServicos = rows.reduce((s, r) => s + getValorItem(r), 0);
+    // Pedidos únicos desta seção
+    const pedidosDaSecao = [...new Set(rows.map(r => getPedido(r)))];
+    const totalPedidos   = pedidosDaSecao.reduce((s, ped) => s + (valorTotalPorPedido[ped] || 0), 0);
+    const pct            = totalPedidos > 0 ? (valorServicos / totalPedidos * 100) : 0;
+    return { sec, valorServicos, totalPedidos, pct };
+  }).sort((a, b) => b.pct - a.pct);
+
+  // Geral (todas as seções combinadas)
+  const totalServGeral  = linhas.reduce((s, l) => s + l.valorServicos, 0);
+  const totalPedGeral   = [...new Set(services.map(r => getPedido(r)))]
+                            .reduce((s, ped) => s + (valorTotalPorPedido[ped] || 0), 0);
+  const pctGeral        = totalPedGeral > 0 ? (totalServGeral / totalPedGeral * 100).toFixed(1) : '0.0';
+
+  // Atualiza badge geral
+  const badge = document.getElementById('pct-geral-badge');
+  if (badge) badge.textContent = `Geral: ${pctGeral}%`;
+
+  document.getElementById('table-penetracao').innerHTML = linhas.map(l => {
+    const barW = Math.min(Math.round(l.pct / 100 * 60), 60);
+    const cor  = l.pct >= 30 ? '#44823C' : l.pct >= 15 ? '#B0B676' : '#9EA5B6';
+    return `
+    <tr class="table-row border-b border-gray-50">
+      <td class="py-2 text-gray-700 font-medium cell-name">${l.sec}</td>
+      <td class="py-2 text-right font-mono text-xs whitespace-nowrap" style="color:#44823C">${fmtBRL(l.valorServicos)}</td>
+      <td class="py-2 text-right font-mono text-xs whitespace-nowrap text-gray-500">${fmtBRL(l.totalPedidos)}</td>
+      <td class="py-2 text-right text-xs whitespace-nowrap">
+        <div class="flex items-center justify-end gap-1">
+          <div class="h-2 rounded-full" style="width:${barW}px;background:${cor};opacity:.8"></div>
+          <span class="font-bold" style="color:${cor}">${l.pct.toFixed(1)}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4" class="text-center py-8 text-gray-400 text-sm">Sem dados</td></tr>';
+}
+
+// ───────────────────────────────────────────────
+// UTILS
+// ───────────────────────────────────────────────
+function groupBy(arr, key) {
+  return arr.reduce((acc, row) => {
+    const k = row[key] || '(Sem valor)';
+    (acc[k] = acc[k] || []).push(row);
+    return acc;
+  }, {});
+}
+
+function groupByFn(arr, fn) {
+  return arr.reduce((acc, row) => {
+    const k = fn(row) || '(Sem valor)';
+    (acc[k] = acc[k] || []).push(row);
+    return acc;
+  }, {});
+}
+
+function fmtBRL(v) {
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtQtd(v) {
+  return Number(v).toLocaleString('pt-BR');
+}
+
+function fmtK(v) {
+  if (v >= 1000) return (v / 1000).toFixed(1) + 'k';
+  return Number(v).toFixed(2).replace('.', ',');
+}
+
+function setLoading(on) {
+  document.getElementById('loader').classList.toggle('hidden', !on);
+}
+
+function showToast(msg, color = 'green') {
+  const colors = { green: '#44823C', red: '#b91c1c', amber: '#b45309' };
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:12px;color:white;font-size:.85rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:opacity .4s;max-width:360px;';
+    document.body.appendChild(t);
+  }
+  t.style.background = colors[color] || colors.green;
+  t.style.opacity = '1';
+  t.textContent = msg;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 4000);
+}
+
+function showNoData() {
+  document.getElementById('no-data-msg').classList.remove('hidden');
+  document.getElementById('kpi-master').innerHTML = '';
+}
+
+// ───────────────────────────────────────────────
+// TABS
+// ───────────────────────────────────────────────
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ───────────────────────────────────────────────
+// MARKDOWN → HTML (para output do Gemini)
+// ───────────────────────────────────────────────
+function mdToHtml(md) {
+  return md
+    .replace(/^### (.+)$/gm, '<p class="font-bold text-sm mt-3 mb-1" style="color:#253B35">$1</p>')
+    .replace(/^## (.+)$/gm,  '<p class="font-bold text-sm mt-4 mb-1" style="color:#253B35">$1</p>')
+    .replace(/^# (.+)$/gm,   '<p class="font-bold text-base mt-4 mb-1" style="color:#253B35">$1</p>')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/\*(.+?)\*/g,     '<i>$1</i>')
+    .replace(/^[\*\-] (.+)$/gm,'<div class="flex gap-2 mb-1"><span style="color:#44823C;flex-shrink:0">•</span><span>$1</span></div>')
+    .replace(/^\d+\. (.+)$/gm, '<div class="flex gap-2 mb-1"><span style="color:#44823C;flex-shrink:0;font-weight:600">›</span><span>$1</span></div>')
+    .replace(/\n\n/g, '<div class="mb-2"></div>')
+    .replace(/\n/g, '<br>');
+}
+
+// ───────────────────────────────────────────────
+// INSIGHTS AUTOMÁTICOS
+// ───────────────────────────────────────────────
+function runInsightsLocais() {
+  const services = filteredData.filter(isService);
+  if (!services.length) { showToast('Sem dados de serviço para analisar', 'amber'); return; }
+
+  const totalVal = services.reduce((s, r) => s + getValorItem(r), 0);
+  const visits   = filteredData.filter(isVisit);
+
+  // Top vendedor
+  const byV = groupByFn(services, r => getLDAP(r));
+  const topV = Object.entries(byV).map(([k,v]) => ({ name: k.split(' - ').slice(1).join(' ') || k, val: v.reduce((s,r) => s+getValorItem(r),0) })).sort((a,b)=>b.val-a.val)[0];
+
+  // Top seção
+  const byS = groupByFn(services, r => getSecao(r));
+  const topS = Object.entries(byS).map(([k,v]) => ({ name: k, val: v.reduce((s,r) => s+getValorItem(r),0), qtd: v.length })).sort((a,b)=>b.val-a.val)[0];
+
+  // Ticket médio
+  const ticket = totalVal / services.length;
+
+  // Penetração geral
+  const valorTotalPorPedido = {};
+  filteredData.forEach(r => { const p=getPedido(r),v=getValorTotal(r); if(p&&v>0) valorTotalPorPedido[p]=v; });
+  const pedServicos = [...new Set(services.map(r => getPedido(r)))];
+  const totalPed = pedServicos.reduce((s,p) => s+(valorTotalPorPedido[p]||0),0);
+  const pctPen = totalPed > 0 ? (totalVal/totalPed*100).toFixed(1) : '—';
+
+  // Vendedores sem serviço (do rawData)
+  const todosVend = new Set(rawData.map(r=>getLDAP(r)).filter(Boolean));
+  const vendComServ = new Set(services.map(r=>getLDAP(r)).filter(Boolean));
+  const semServico = [...todosVend].filter(v=>!vendComServ.has(v)).length;
+
+  const cards = [
+    { icon:'🏆', titulo:'Top Vendedor', texto:`<b>${topV?.name||'—'}</b> lidera com <b>${fmtBRL(topV?.val||0)}</b> em serviços` },
+    { icon:'📦', titulo:'Seção Destaque', texto:`<b>${topS?.name||'—'}</b> com <b>${fmtBRL(topS?.val||0)}</b> em ${topS?.qtd||0} linhas` },
+    { icon:'💵', titulo:'Ticket Médio por Linha', texto:`Média de <b>${fmtBRL(ticket)}</b> por linha de serviço` },
+    { icon:'🎯', titulo:'Penetração Geral', texto:`Serviços representam <b>${pctPen}%</b> do valor total dos pedidos` },
+    { icon:'🔍', titulo:'Visitas Técnicas', texto:`<b>${visits.length}</b> linhas de visita técnica registradas` },
+    { icon:'⚠️', titulo:'Vendedores sem Serviço', texto:`<b>${semServico}</b> vendedor(es) sem nenhum serviço registrado` },
+  ];
+
+  document.getElementById('insights-placeholder').classList.add('hidden');
+  document.getElementById('insights-loading').classList.add('hidden');
+  document.getElementById('insights-content').classList.remove('hidden');
+  document.getElementById('ai-output').classList.add('hidden');
+  document.getElementById('insights-source-badge').textContent = 'Automático';
+  document.getElementById('insight-cards').innerHTML = cards.map(c => `
+    <div class="insight-card">
+      <div class="text-base mb-1">${c.icon} <span class="font-bold text-xs uppercase tracking-wide" style="color:#253B35">${c.titulo}</span></div>
+      <div>${c.texto}</div>
+    </div>
+  `).join('');
+}
+
+// ───────────────────────────────────────────────
+// GEMINI API — fallback entre modelos
+// ───────────────────────────────────────────────
+async function callGemini(key, prompt) {
+  // 1. Descobre quais modelos estão disponíveis para esta chave
+  let availableModels = [];
+  for (const api of ['v1beta', 'v1']) {
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/${api}/models?key=${key}`);
+      const j = await r.json();
+      if (r.ok && j.models) {
+        availableModels = j.models
+          .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+          .map(m => ({ name: m.name.replace('models/', ''), api }));
+        if (availableModels.length) break;
+      }
+    } catch(e) { /* tenta próxima versão */ }
+  }
+
+  // 2. Se não conseguiu listar, usa lista fixa como fallback
+  if (!availableModels.length) {
+    availableModels = [
+      'gemini-2.0-flash-lite','gemini-2.0-flash',
+      'gemini-1.5-flash','gemini-1.5-flash-8b',
+    ].flatMap(m => [{ name:m, api:'v1beta' }, { name:m, api:'v1' }]);
+  }
+
+  // 3. Tenta cada modelo disponível
+  let lastErr = '';
+  for (const { name, api } of availableModels) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/${api}/models/${name}:generateContent?key=${key}`,
+        { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] }) }
+      );
+      const json = await res.json();
+      if (!res.ok) {
+        lastErr = json.error?.message || `HTTP ${res.status}`;
+        console.warn(`${name} (${api}): ${lastErr}`);
+        continue;
+      }
+      const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) return { text, model: name };
+      lastErr = 'Resposta vazia';
+    } catch(e) {
+      lastErr = e.message;
+      console.warn(`${name} erro de rede: ${e.message}`);
+    }
+  }
+  throw new Error(lastErr || 'Nenhum modelo acessível com esta chave.');
+}
+
+async function runGemini() {
+  const key = document.getElementById('gemini-key').value.trim();
+  if (!key) { showToast('Insira sua Gemini API Key primeiro', 'amber'); return; }
+  localStorage.setItem('gemini_key', key);
+
+  const services = filteredData.filter(isService);
+  if (!services.length) { showToast('Sem dados de serviço para analisar', 'amber'); return; }
+
+  const totalVal = services.reduce((s,r) => s+getValorItem(r), 0);
+  const byV = groupByFn(services, r => getLDAP(r));
+  const byS = groupByFn(services, r => getSecao(r));
+  const topVend = Object.entries(byV).map(([k,v])=>({ n: k.split(' - ').slice(1).join(' ')||k, v: v.reduce((s,r)=>s+getValorItem(r),0) })).sort((a,b)=>b.v-a.v).slice(0,5);
+  const topSec  = Object.entries(byS).map(([k,v])=>({ n:k, v: v.reduce((s,r)=>s+getValorItem(r),0), q:v.length })).sort((a,b)=>b.v-a.v);
+
+  const prompt = `Você é um analista de dados da Leroy Merlin Brasil. Analise os dados abaixo de serviços vendidos e gere insights objetivos e acionáveis em português. Seja direto, use bullet points e destaque oportunidades e alertas.
+
+DADOS:
+- Total de linhas de serviço: ${services.length}
+- Receita total de serviços: R$ ${totalVal.toFixed(2)}
+- Ticket médio por linha: R$ ${(totalVal/services.length).toFixed(2)}
+- Visitas técnicas: ${filteredData.filter(isVisit).length} linhas
+
+TOP VENDEDORES:
+${topVend.map((v,i)=>`${i+1}. ${v.n}: R$ ${v.v.toFixed(2)}`).join('\n')}
+
+SERVIÇOS POR SEÇÃO:
+${topSec.map(s=>`- ${s.n}: ${s.q} linhas | R$ ${s.v.toFixed(2)}`).join('\n')}
+
+Gere: 1) 3 pontos positivos, 2) 3 alertas ou oportunidades, 3) 2 recomendações práticas.`;
+
+  document.getElementById('insights-placeholder').classList.add('hidden');
+  document.getElementById('insights-content').classList.add('hidden');
+  document.getElementById('insights-loading').classList.remove('hidden');
+
+  try {
+    const { text, model } = await callGemini(key, prompt);
+
+    runInsightsLocais();
+    document.getElementById('insights-source-badge').textContent = `Gemini IA (${model})`;
+    const aiOut = document.getElementById('ai-output');
+    aiOut.classList.remove('hidden');
+    aiOut.innerHTML = mdToHtml(text);
+
+  } catch(e) {
+    document.getElementById('insights-loading').classList.add('hidden');
+    document.getElementById('insights-placeholder').classList.remove('hidden');
+    // Mostra erro amigável no lugar do toast (mensagem longa)
+    document.getElementById('insights-placeholder').innerHTML =
+      `<div class="text-sm bg-red-50 border border-red-200 rounded-lg p-4 text-left">
+        <p class="font-bold text-red-700 mb-2">Não foi possível conectar ao Gemini</p>
+        <p class="text-red-600 mb-3 text-xs">${e.message}</p>
+        <p class="text-gray-600 text-xs mb-2"><b>Verifique:</b></p>
+        <ol class="text-gray-600 text-xs list-decimal pl-4 space-y-1 mb-3">
+          <li>Acesse <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 underline">aistudio.google.com/app/apikey</a></li>
+          <li>Crie uma <b>nova chave</b> (pode ser que a atual esteja expirada ou sem acesso)</li>
+          <li>Certifique-se de que a conta Google tem a <b>Generative Language API habilitada</b></li>
+          <li>Cole a nova chave no campo acima e tente novamente</li>
+        </ol>
+        <button onclick="runInsightsLocais()" class="btn-neutral px-3 py-1.5 rounded-lg text-xs">Usar Insights Automáticos</button>
+      </div>`;
+  } finally {
+    document.getElementById('insights-loading').classList.add('hidden');
+    document.getElementById('insights-content').classList.remove('hidden');
+  }
+}
+
+// ───────────────────────────────────────────────
+// LOGIN
+// ───────────────────────────────────────────────
+const CREDS = { user: 'welbert@2026', pass: 'servicosrco@2026' };
+const SESSION_KEY = 'painel_auth';
+
+function doLogin(e) {
+  e.preventDefault();
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  const inpU = document.getElementById('login-user');
+  const inpP = document.getElementById('login-pass');
+
+  if (u === CREDS.user && p === CREDS.pass) {
+    sessionStorage.setItem(SESSION_KEY, '1');
+    err.style.display = 'none';
+    inpU.classList.remove('error');
+    inpP.classList.remove('error');
+    showApp();
+  } else {
+    err.style.display = 'block';
+    inpU.classList.add('error');
+    inpP.classList.add('error');
+    inpP.value = '';
+    inpP.focus();
+  }
+}
+
+function togglePass() {
+  const inp = document.getElementById('login-pass');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  // Restaura chave Gemini salva
+  const savedKey = localStorage.getItem('gemini_key');
+  if (savedKey) document.getElementById('gemini-key').value = savedKey;
+  loadConfig();
+  loadData();
+}
+
+// ───────────────────────────────────────────────
+// INIT
+// ───────────────────────────────────────────────
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  showApp();
+} else {
+  // foca no campo usuário
+  setTimeout(() => document.getElementById('login-user').focus(), 50);
+}
+</script>
+
+</div><!-- /app -->
+</body>
+</html>
