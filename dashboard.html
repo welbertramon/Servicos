@@ -371,7 +371,7 @@
     <div id="receita-destaque" class="mb-5 rounded-2xl px-6 py-4 flex flex-wrap items-center justify-between gap-3"
          style="background:linear-gradient(135deg,#253B35 0%,#44823C 100%)">
       <div>
-        <p class="text-xs font-semibold text-lime-300 uppercase tracking-widest mb-1">Venda Total de Serviços</p>
+        <p class="text-xs font-semibold text-lime-300 uppercase tracking-widest mb-1">Receita Total de Serviços</p>
         <p class="text-3xl sm:text-4xl font-bold text-white" id="receita-total-destaque">—</p>
       </div>
       <div class="text-right">
@@ -382,7 +382,7 @@
 
     <section class="mb-6">
       <h2 class="section-title">KPIs Master</h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4" id="kpi-master"></div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="kpi-master"></div>
     </section>
 
     <!-- Gráficos resumo -->
@@ -912,13 +912,17 @@ function renderKpiMaster(services, visits) {
   const sellers  = new Set(services.filter(r => getLDAP(r) && !getLDAP(r).toUpperCase().includes('ECOMMERCE')).map(r => getLDAP(r)));
   const secoes   = new Set(services.map(r => getSecao(r)).filter(Boolean));
 
-  // Ordem: Serviços Vendidos | Visitas Técnicas | Receita de Serviços | Vendedores | Seções com Serviço
+  // Seções sem vendas (das 16 fixas)
+  const bySecao = groupByFn(services, r => getSecao(r));
+  const secoesSemVenda = SECOES_FIXAS.filter(s => !(bySecao[s] && bySecao[s].length > 0)).length;
+
   const cards = [
-    { label: 'Qtd Serviços Vendidos',   value: fmtQtd(totalLinhas), sub: '',                      color: 'green',  icon: '🛠' },
-    { label: 'Visitas Técnicas',    value: fmtQtd(visitLinhas), sub: '',                       color: 'purple', icon: '🔍' },
-    { label: 'Receita de Serviços', value: fmtBRL(totalVal),  sub: 'valor total',           color: 'blue',   icon: '💰' },
-    { label: 'Vendedores',           value: sellers.size,       sub: 'com venda de serviço', color: 'teal',   icon: '👤' },
-    { label: 'Seções com Serviço',  value: secoes.size,        sub: 'seções distintas',     color: 'rose',   icon: '📂' },
+    { label: 'Qtd Serviços Vendidos', value: fmtQtd(totalLinhas), sub: '',                      color: 'green',  icon: '🛠' },
+    { label: 'Visitas Técnicas',      value: fmtQtd(visitLinhas), sub: '',                      color: 'purple', icon: '🔍' },
+    { label: 'Receita de Serviços',   value: fmtBRL(totalVal),    sub: 'valor total',           color: 'blue',   icon: '💰' },
+    { label: 'Vendedores',            value: sellers.size,         sub: 'com venda de serviço', color: 'teal',   icon: '👤' },
+    { label: 'Seções com Serviço',    value: secoes.size,          sub: 'seções distintas',     color: 'rose',   icon: '📂' },
+    { label: 'Seções sem Venda',      value: secoesSemVenda,       sub: 'das 15 seções',        color: 'amber',  icon: '⚠️', alert: secoesSemVenda > 0 },
   ];
 
   // Destaque receita total
@@ -930,16 +934,19 @@ function renderKpiMaster(services, visits) {
   if (dLin) dLin.textContent = `${fmtQtd(totalLinhas)} linhas de serviço`;
   if (dTick) dTick.textContent = `Ticket médio: ${fmtBRL(ticket)}`;
 
-  document.getElementById('kpi-master').innerHTML = cards.map(c => `
-    <div class="kpi-card bg-white rounded-2xl shadow-sm p-4 border-l-4" style="border-color:var(--${c.color})">
+  document.getElementById('kpi-master').innerHTML = cards.map(c => {
+    const alertStyle = c.alert ? 'border-color:#ef4444;background:#fef2f2;' : `border-color:var(--${c.color});`;
+    const valColor   = c.alert ? 'color:#ef4444;' : '';
+    return `
+    <div class="kpi-card bg-white rounded-2xl shadow-sm p-4 border-l-4" style="${alertStyle}">
       <div class="flex items-center justify-between mb-2">
         <span class="text-xl">${c.icon}</span>
         ${c.sub ? `<span class="badge" style="background:var(--${c.color}-light);color:var(--${c.color})">${c.sub}</span>` : ''}
       </div>
-      <div class="text-2xl font-bold text-gray-800">${c.value}</div>
+      <div class="text-2xl font-bold" style="${valColor}color:${c.alert?'#ef4444':'#1f2937'}">${c.value}</div>
       <div class="text-xs text-gray-500 mt-1">${c.label}</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 // ───────────────────────────────────────────────
@@ -1023,19 +1030,43 @@ function renderVendedorChart(services) {
   });
 }
 
-// Gráfico: Serviços por Seção — Valor (R$) — barras horizontais (igual ao de Vendedores)
+// 16 seções fixas
+const SECOES_FIXAS = [
+  'ENCANAMENTO','SANITARIO','JARDIM','MATERIAIS','CERAMICA','FERRAMENTAS',
+  'COZINHAS','PISOS LAMINADOS E VINILICOS','ILUMINACAO','ELETRICIDADE',
+  'PINTURA','FERRAGENS','DECORACAO','CARPINTARIA E MADEIRA','ORGANIZACAO'
+];
+
+// Gráfico: Serviços por Seção — Valor (R$) — barras horizontais, 16 seções fixas
 function renderSecaoValorChart(services) {
   const by = groupByFn(services, r => getSecao(r));
-  const sorted = Object.entries(by)
-    .map(([sec, rows]) => ({ sec, val: rows.reduce((a,r) => a+getValorItem(r),0) }))
-    .sort((a,b) => b.val - a.val);
 
-  // Altura dinâmica: 52px por seção, proporcional ao número de itens
-  setChartHeight('container-secao-valor', sorted.length, 52, sorted.length * 52 + 40, 700);
+  // Monta as 15 seções fixas — valor 0 se não tiver dados
+  const all = SECOES_FIXAS.map(sec => ({
+    sec,
+    val: (by[sec] || []).reduce((a,r) => a + getValorItem(r), 0)
+  }));
+
+  // Marketplace: só aparece se houver vendas
+  const mktVal = (by['MARKETPLACE'] || []).reduce((a,r) => a + getValorItem(r), 0);
+  if (mktVal > 0) all.push({ sec: 'MARKETPLACE', val: mktVal });
+
+  // Ordena: com valor desc primeiro, sem valor (0) ao final
+  const sorted = [
+    ...all.filter(s => s.val > 0).sort((a,b) => b.val - a.val),
+    ...all.filter(s => s.val === 0)
+  ];
+
+  // Cores: vermelho para seções sem vendas, paleta normal para as demais
+  const colors = sorted.map((s, i) =>
+    s.val === 0 ? '#ef4444' : PALETTE[i % PALETTE.length]
+  );
+
+  setChartHeight('container-secao-valor', sorted.length, 52, sorted.length * 52 + 40, 900);
 
   mkChart('chart-secao-valor', 'bar', {
     labels: sorted.map(s => s.sec),
-    datasets: [{ label: 'Valor (R$)', data: sorted.map(s => s.val), backgroundColor: PALETTE }]
+    datasets: [{ label: 'Valor (R$)', data: sorted.map(s => s.val), backgroundColor: colors }]
   }, {
     indexAxis: 'y',
     plugins: {
@@ -1043,13 +1074,13 @@ function renderSecaoValorChart(services) {
       datalabels: {
         anchor: 'end',
         align: 'end',
-        color: '#253B35',
         font: { size: 11, weight: '600' },
-        formatter: v => 'R$ ' + fmtK(v),
         clip: false,
+        color: ctx => ctx.dataset.data[ctx.dataIndex] === 0 ? '#ef4444' : '#253B35',
+        formatter: v => v === 0 ? 'Sem vendas' : 'R$ ' + fmtK(v),
       }
     },
-    layout: { padding: { right: 80 } },
+    layout: { padding: { right: 88 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
