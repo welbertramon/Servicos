@@ -388,7 +388,7 @@
     <!-- Gráficos resumo -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
       <div class="card">
-        <h3 class="card-title">Top 10 Vendedores por Serviços (R$)</h3>
+        <h3 class="card-title">Top 15 Vendedores por Serviços (R$)</h3>
         <div id="container-vendedor-val" style="position:relative"><canvas id="chart-vendedor-val"></canvas></div>
       </div>
       <div class="card">
@@ -438,42 +438,20 @@
       </div>
     </div>
 
-    <!-- Top Itens + Penetração -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      <div class="card">
-        <h3 class="card-title">Top 10 Itens de Serviço</h3>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-xs border-b" style="color:#9EA5B6">
-                <th class="text-left pb-2">Item</th>
-                <th class="text-right pb-2">Linhas</th>
-                <th class="text-right pb-2">R$ Total</th>
-              </tr>
-            </thead>
-            <tbody id="table-top-itens"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card">
-        <div class="flex items-start justify-between mb-1">
-          <h3 class="card-title mb-0">Penetração de Serviços no Pedido</h3>
-          <span id="pct-geral-badge" class="badge text-xs font-bold px-2 py-1 rounded-full" style="background:#e6f2e1;color:#44823C"></span>
-        </div>
-        <p class="text-xs text-gray-400 mb-3">% do valor de serviços sobre o total do pedido</p>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-xs border-b" style="color:#9EA5B6">
-                <th class="text-left pb-2">Seção</th>
-                <th class="text-right pb-2">Serviços (R$)</th>
-                <th class="text-right pb-2">Total Pedido (R$)</th>
-                <th class="text-right pb-2">Penetração</th>
-              </tr>
-            </thead>
-            <tbody id="table-penetracao"></tbody>
-          </table>
-        </div>
+    <!-- Top Itens — largura total -->
+    <div class="card mb-6">
+      <h3 class="card-title">Top 10 Itens de Serviço</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs border-b" style="color:#9EA5B6">
+              <th class="text-left pb-2">Item</th>
+              <th class="text-right pb-2">Linhas</th>
+              <th class="text-right pb-2">R$ Total</th>
+            </tr>
+          </thead>
+          <tbody id="table-top-itens"></tbody>
+        </table>
       </div>
     </div>
 
@@ -993,10 +971,9 @@ function renderVendedorChart(services) {
       val:  rows.reduce((s, r) => s + getValorItem(r), 0),
     }))
     .sort((a, b) => b.val - a.val)
-    .slice(0, 10);
+    .slice(0, 15);
 
-  // Altura dinâmica: 52px por vendedor, sem mínimo fixo alto
-  setChartHeight('container-vendedor-val', sorted.length, 52, sorted.length * 52 + 40, 560);
+  setChartHeight('container-vendedor-val', sorted.length, 52, sorted.length * 52 + 40, 900);
 
   mkChart('chart-vendedor-val', 'bar', {
     labels: sorted.map(r => r.name),
@@ -1009,20 +986,20 @@ function renderVendedorChart(services) {
         anchor: 'end',
         align: 'end',
         color: '#253B35',
-        font: { size: 11, weight: '600' },
+        font: { size: 13, weight: '600' },
         formatter: v => 'R$ ' + fmtK(v),
         clip: false,
       }
     },
-    layout: { padding: { right: 72 } },
+    layout: { padding: { right: 80 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
         grid: { display: false }, border: { display: false },
         ticks: {
-          font: { size: 10 },
+          font: { size: 12 },
           callback: function(val) {
-            return wrapLabel(this.getLabelForValue(val), 18);
+            return wrapLabel(this.getLabelForValue(val), 20);
           }
         }
       }
@@ -1074,21 +1051,21 @@ function renderSecaoValorChart(services) {
       datalabels: {
         anchor: 'end',
         align: 'end',
-        font: { size: 11, weight: '600' },
+        font: { size: 13, weight: '600' },
         clip: false,
         color: ctx => ctx.dataset.data[ctx.dataIndex] === 0 ? '#ef4444' : '#253B35',
         formatter: v => v === 0 ? 'Sem vendas' : 'R$ ' + fmtK(v),
       }
     },
-    layout: { padding: { right: 88 } },
+    layout: { padding: { right: 96 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
         grid: { display: false }, border: { display: false },
         ticks: {
-          font: { size: 11 },
+          font: { size: 12 },
           callback: function(val) {
-            return wrapLabel(this.getLabelForValue(val), 20);
+            return wrapLabel(this.getLabelForValue(val), 22);
           }
         }
       }
@@ -1754,3 +1731,4 @@ if (sessionStorage.getItem(SESSION_KEY) === '1') {
 </div><!-- /app -->
 </body>
 </html>
+<!-- rebuild  -->
