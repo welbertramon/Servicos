@@ -43,7 +43,7 @@
     .filter-bar { background: white; border-radius: 12px; padding: 14px 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06); margin-bottom: 20px; }
 
     /* section headings */
-    .section-title { color: #253B35; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 1rem; }
+    .section-title { color: #253B35; font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 1rem; }
 
     /* mobile */
     @media (max-width: 640px) {
@@ -110,8 +110,10 @@
     .btn-neutral:hover { background:#d1d5db; }
 
     /* chart card */
-    .card { background:white; border-radius:16px; box-shadow:0 1px 4px rgba(0,0,0,.07); padding:1.25rem; }
-    .card-title { font-weight:600; color:#253B35; margin-bottom:1rem; font-size:.95rem; }
+    .card { background:white; border-radius:16px; box-shadow:0 1px 4px rgba(0,0,0,.07); padding:1.25rem; font-size:1rem; }
+    .card-title { font-weight:600; color:#253B35; margin-bottom:1rem; font-size:1.1rem; }
+    .card table { font-size:.95rem; }
+    .card table td, .card table th { font-size:.95rem; }
 
     /* ── LOGIN ── */
     #login-screen {
@@ -408,7 +410,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
-              <tr class="text-xs border-b" style="color:#9EA5B6">
+              <tr class="text-sm border-b" style="color:#9EA5B6">
                 <th class="text-left pb-2">#</th>
                 <th class="text-left pb-2">Vendedor</th>
                 <th class="text-right pb-2">Linhas</th>
@@ -425,7 +427,7 @@
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead>
-              <tr class="text-xs border-b" style="color:#9EA5B6">
+              <tr class="text-sm border-b" style="color:#9EA5B6">
                 <th class="text-left pb-2">Seção</th>
                 <th class="text-right pb-2">Linhas</th>
                 <th class="text-right pb-2">R$ Total</th>
@@ -444,7 +446,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="text-xs border-b" style="color:#9EA5B6">
+            <tr class="text-sm border-b" style="color:#9EA5B6">
               <th class="text-left pb-2">Item</th>
               <th class="text-right pb-2">Linhas</th>
               <th class="text-right pb-2">R$ Total</th>
@@ -916,13 +918,13 @@ function renderKpiMaster(services, visits) {
     const alertStyle = c.alert ? 'border-color:#ef4444;background:#fef2f2;' : `border-color:var(--${c.color});`;
     const valColor   = c.alert ? 'color:#ef4444;' : '';
     return `
-    <div class="kpi-card bg-white rounded-2xl shadow-sm p-4 border-l-4" style="${alertStyle}">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xl">${c.icon}</span>
-        ${c.sub ? `<span class="badge" style="background:var(--${c.color}-light);color:var(--${c.color})">${c.sub}</span>` : ''}
+    <div class="kpi-card bg-white rounded-2xl shadow-sm p-5 border-l-4" style="${alertStyle}">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-3xl">${c.icon}</span>
+        ${c.sub ? `<span class="badge" style="background:var(--${c.color}-light);color:var(--${c.color});font-size:1rem;padding:4px 12px">${c.sub}</span>` : ''}
       </div>
-      <div class="text-2xl font-bold" style="${valColor}color:${c.alert?'#ef4444':'#1f2937'}">${c.value}</div>
-      <div class="text-xs text-gray-500 mt-1">${c.label}</div>
+      <div style="font-size:2.4rem;font-weight:700;line-height:1.1;${valColor}color:${c.alert?'#ef4444':'#1f2937'}">${c.value}</div>
+      <div style="font-size:1.15rem;color:#6b7280;margin-top:6px">${c.label}</div>
     </div>`;
   }).join('');
 }
@@ -1092,11 +1094,11 @@ function renderVendedoresTable(services) {
     const barW = Math.round(r.val / totalVal * 50);
     return `
     <tr class="table-row border-b border-gray-50">
-      <td class="py-2 pr-2 text-gray-400 font-mono text-xs whitespace-nowrap">${i + 1}</td>
+      <td class="py-2 pr-2 text-gray-400 font-mono text-sm whitespace-nowrap">${i + 1}</td>
       <td class="py-2 text-gray-700 font-medium cell-name">${r.name}</td>
-      <td class="py-2 text-right font-mono text-xs whitespace-nowrap">${fmtQtd(r.qtd)}</td>
-      <td class="py-2 text-right font-mono text-xs whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
-      <td class="py-2 text-right text-xs whitespace-nowrap">
+      <td class="py-2 text-right font-mono text-sm whitespace-nowrap">${fmtQtd(r.qtd)}</td>
+      <td class="py-2 text-right font-mono text-sm whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
+      <td class="py-2 text-right text-sm whitespace-nowrap">
         <div class="flex items-center justify-end gap-1">
           <div class="h-1.5 rounded-full" style="width:${barW}px;background:#BCE05E;opacity:.85"></div>
           <span class="font-mono" style="color:#253B35">${pct}%</span>
@@ -1120,9 +1122,9 @@ function renderSecoesTable(services) {
   document.getElementById('table-secoes').innerHTML = rows.map(r => `
     <tr class="table-row border-b border-gray-50">
       <td class="py-2 text-gray-700 font-medium cell-name">${r.sec}</td>
-      <td class="py-2 text-right font-mono text-xs whitespace-nowrap">${fmtQtd(r.qtd)}</td>
-      <td class="py-2 text-right font-mono text-xs whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
-      <td class="py-2 text-right text-xs whitespace-nowrap">
+      <td class="py-2 text-right font-mono text-sm whitespace-nowrap">${fmtQtd(r.qtd)}</td>
+      <td class="py-2 text-right font-mono text-sm whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
+      <td class="py-2 text-right text-sm whitespace-nowrap">
         <div class="flex items-center justify-end gap-1">
           <div class="h-1.5 rounded-full" style="width:${Math.round(r.val/totalVal*60)}px;background:#BCE05E;opacity:.8"></div>
           <span class="font-mono">${totalVal > 0 ? (r.val/totalVal*100).toFixed(1) : 0}%</span>
@@ -1146,8 +1148,8 @@ function renderTopItens(services) {
   document.getElementById('table-top-itens').innerHTML = rows.map(r => `
     <tr class="table-row border-b border-gray-50">
       <td class="py-2 text-gray-700 cell-name">${r.desc}</td>
-      <td class="py-2 text-right font-mono text-xs whitespace-nowrap">${fmtQtd(r.qtd)}</td>
-      <td class="py-2 text-right font-mono text-xs whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
+      <td class="py-2 text-right font-mono text-sm whitespace-nowrap">${fmtQtd(r.qtd)}</td>
+      <td class="py-2 text-right font-mono text-sm whitespace-nowrap" style="color:#44823C">${fmtBRL(r.val)}</td>
     </tr>
   `).join('') || '<tr><td colspan="3" class="text-center py-8 text-gray-400 text-sm">Nenhum item encontrado</td></tr>';
 }
