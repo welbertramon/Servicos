@@ -373,7 +373,7 @@
     <div id="receita-destaque" class="mb-5 rounded-2xl px-6 py-4 flex flex-wrap items-center justify-between gap-3"
          style="background:linear-gradient(135deg,#253B35 0%,#44823C 100%)">
       <div>
-        <p class="text-xs font-semibold text-lime-300 uppercase tracking-widest mb-1">Receita Total de Serviços</p>
+        <p class="text-xs font-semibold text-lime-300 uppercase tracking-widest mb-1"> Venda Total de Serviços</p>
         <p class="text-3xl sm:text-4xl font-bold text-white" id="receita-total-destaque">—</p>
       </div>
       <div class="text-right">
@@ -1419,7 +1419,7 @@ async function runGemini() {
 
 DADOS:
 - Total de linhas de serviço: ${services.length}
-- Receita total de serviços: R$ ${totalVal.toFixed(2)}
+- Venda total de serviços: R$ ${totalVal.toFixed(2)}
 - Ticket médio por linha: R$ ${(totalVal/services.length).toFixed(2)}
 - Visitas técnicas: ${filteredData.filter(isVisit).length} linhas
 
