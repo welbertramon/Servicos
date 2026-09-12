@@ -373,7 +373,7 @@
     <div id="receita-destaque" class="mb-5 rounded-2xl px-6 py-4 flex flex-wrap items-center justify-between gap-3"
          style="background:linear-gradient(135deg,#253B35 0%,#44823C 100%)">
       <div>
-        <p class="text-xs font-semibold text-lime-300 uppercase tracking-widest mb-1"> Venda Total de Serviços</p>
+        <p class="text-xs font-semibold text-lime-300 uppercase tracking-widest mb-1">Receita Total de Serviços</p>
         <p class="text-3xl sm:text-4xl font-bold text-white" id="receita-total-destaque">—</p>
       </div>
       <div class="text-right">
@@ -455,6 +455,12 @@
           <tbody id="table-top-itens"></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- Visitas de Reforma -->
+    <div class="card mb-6">
+      <h3 class="card-title">🏗 Visitas de Reforma</h3>
+      <div id="reforma-visits-content"></div>
     </div>
 
     <!-- Insights IA — dentro da aba Análises -->
@@ -555,6 +561,12 @@ function isService(row) {
 function isVisit(row) {
   const val = (getDesc(row) || '').toUpperCase().trim();
   return val.startsWith('VISITA');
+}
+
+// Visitas de Reforma: descrição contém "REFORMA"
+function isReformVisit(row) {
+  const val = (getDesc(row) || '').toUpperCase().trim();
+  return val.startsWith('VISITA') && val.includes('REFORMA');
 }
 
 // Seção da linha (coluna K)
@@ -686,7 +698,7 @@ function getField(row, ...keys) {
 function getValorItem(row)  { return toNum(getField(row, 'Valor total do Item', 'Valor Total do Item', 'valor total do item')); }
 function getValorTotal(row) { return toNum(getField(row, 'Valor Total', 'Valor total', 'valor total')); } // col E — total do pedido
 function getQtd(row)        { return toNum(getField(row, 'Quantidade', 'quantidade', 'Qtd')); }
-function getPedido(row)     { return getField(row, 'Número do pedido', 'Numero do pedido', 'número do pedido') || Math.random(); }
+function getPedido(row)     { return getField(row, 'Número', 'Número do pedido', 'Numero do pedido', 'número do pedido') || Math.random(); }
 function getLDAP(row) {
   // Tenta colunas conhecidas
   const val = getField(row, 'LDAP', 'ldap', 'Vendedor', 'vendedor', 'Nome do Vendedor', 'Consultor', 'consultor');
@@ -880,6 +892,7 @@ function renderAll() {
   renderSecoesTable(services);
   renderTopItens(services);
   renderPenetracao(services, filteredData);
+  renderReformaVisits(filteredData);
 }
 
 // ───────────────────────────────────────────────
@@ -1211,6 +1224,52 @@ function renderPenetracao(services, allData) {
 }
 
 // ───────────────────────────────────────────────
+// VISITAS DE REFORMA
+// ───────────────────────────────────────────────
+function renderReformaVisits(allData) {
+  const el = document.getElementById('reforma-visits-content');
+  if (!el) return;
+
+  const reformas = allData.filter(isReformVisit);
+
+  if (!reformas.length) {
+    el.innerHTML = '<p class="text-gray-400 text-sm py-2">Nenhuma visita de reforma registrada.</p>';
+    return;
+  }
+
+  // Agrupa por descrição + vendedor para evitar duplicatas do mesmo pedido
+  const vistas = [];
+  const seen = new Set();
+  reformas.forEach(r => {
+    const desc    = getDesc(r) || '—';
+    const ldap    = getLDAP(r) || '';
+    const vendedor = ldap.split(' - ').slice(1).join(' - ') || ldap || '—';
+    const pedido  = getPedido(r);
+    const key     = `${pedido}|${desc}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    vistas.push({ desc, vendedor, pedido });
+  });
+
+  el.innerHTML = `
+    <div class="flex items-center gap-2 mb-3">
+      <span class="font-bold text-lg" style="color:#44823C">${vistas.length}</span>
+      <span class="text-gray-500 text-sm">visita${vistas.length !== 1 ? 's' : ''} de reforma</span>
+    </div>
+    <div class="space-y-2">
+      ${vistas.map((v, i) => `
+        <div class="flex items-start gap-3 p-3 rounded-xl" style="background:#f8fdf4;border:1px solid #d4edcf">
+          <span class="font-bold text-sm mt-0.5" style="color:#44823C">${i + 1}</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm" style="color:#253B35">${v.desc}</div>
+            <div class="text-sm text-gray-500 mt-0.5">👤 ${v.vendedor}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+// ───────────────────────────────────────────────
 // UTILS
 // ───────────────────────────────────────────────
 function groupBy(arr, key) {
@@ -1419,7 +1478,7 @@ async function runGemini() {
 
 DADOS:
 - Total de linhas de serviço: ${services.length}
-- Venda total de serviços: R$ ${totalVal.toFixed(2)}
+- Receita total de serviços: R$ ${totalVal.toFixed(2)}
 - Ticket médio por linha: R$ ${(totalVal/services.length).toFixed(2)}
 - Visitas técnicas: ${filteredData.filter(isVisit).length} linhas
 
