@@ -1205,7 +1205,9 @@ function renderPenetracao(services, allData) {
   const badge = document.getElementById('pct-geral-badge');
   if (badge) badge.textContent = `Geral: ${pctGeral}%`;
 
-  document.getElementById('table-penetracao').innerHTML = linhas.map(l => {
+  const tblPen = document.getElementById('table-penetracao');
+  if (!tblPen) return;
+  tblPen.innerHTML = linhas.map(l => {
     const barW = Math.min(Math.round(l.pct / 100 * 60), 60);
     const cor  = l.pct >= 30 ? '#44823C' : l.pct >= 15 ? '#B0B676' : '#9EA5B6';
     return `
@@ -1656,6 +1658,37 @@ function removeStore(loja) {
   showToast(`Dados de ${loja} removidos.`, 'amber');
 }
 
+// Detecta e corrige o deslocamento de colunas do novo padrão de exportação do LM.
+// O novo formato inclui um código numérico de produto na coluna "Descrição",
+// empurrando todas as colunas seguintes uma posição à frente.
+function fixColumnShift(rows) {
+  if (!rows.length) return rows;
+  const sample = rows[0];
+  const descVal = String(sample['Descrição'] || sample['Descricao'] || '').trim();
+  // Se "Descrição" tem só dígitos (código de produto), estamos no novo formato
+  if (!descVal || !/^\d+$/.test(descVal)) return rows;
+
+  const ldapPattern = /^\d{5,}\s*[-–]/;
+  return rows.map(row => {
+    const r = { ...row };
+    r['Descrição']                = row['Seção']                      || '';
+    r['Seção']                    = row['Top']                        || '';
+    r['Top']                      = row['Status do produto']          || '';
+    r['Status do produto']        = row['Quantidade']                 || '';
+    r['Quantidade']               = row['Preço unitário']             || row['Preco unitario'] || '';
+    r['Preço unitário']           = row['Desconto Pontual']           || '';
+    r['Valor total do Item']      = row['Motivo do Desconto Pontual'] || '';
+    r['Fluxo de saída']           = row['Valor total do Item']        || '';
+    r['Data de entrega/retirada'] = row['Fluxo de saída']             || '';
+    r['Filial de saída']          = row['Data de entrega/retirada']   || '';
+    // LDAP: para serviços está em 'Filial de saída'; para produtos, permanece em 'LDAP'
+    const ldapFromFilial = String(row['Filial de saída'] || '');
+    r['LDAP'] = ldapPattern.test(ldapFromFilial) ? ldapFromFilial : (row['LDAP'] || '');
+    r['Valor frete']              = row['Valor frete']                || '';
+    return r;
+  });
+}
+
 async function processImport() {
   const loja = document.getElementById('import-loja').value;
   const file = document.getElementById('import-file').files[0];
@@ -1704,6 +1737,11 @@ async function processImport() {
     }
 
     if (!rows.length) { showStatus('O arquivo está vazio ou não tem linhas de dados.', 'error'); return; }
+
+    // Detecta e corrige deslocamento de colunas do novo formato de exportação:
+    // O LM exporta um código numérico de produto na coluna "Descrição",
+    // empurrando Descrição→Seção→Top→Status do produto→Quantidade→Preço unitário uma posição à frente.
+    rows = fixColumnShift(rows);
 
     // Tagueia cada linha com a loja selecionada
     rows = rows.map(r => ({ ...r, __loja: loja }));
