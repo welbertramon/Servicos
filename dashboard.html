@@ -679,7 +679,9 @@ function parseCSVLine(line, sep = ',') {
 
 function toNum(v) {
   if (v === undefined || v === null || v === '') return 0;
-  // Remove R$, espaços, pontos de milhar; troca vírgula decimal por ponto
+  // SheetJS retorna células numéricas do Excel como number — usar diretamente, sem remover pontos decimais
+  if (typeof v === 'number') return isNaN(v) ? 0 : v;
+  // Strings BR: remove R$, remove pontos de milhar, troca vírgula decimal por ponto
   const s = String(v).replace(/R\$\s?/g, '').replace(/\./g, '').replace(',', '.').replace(/[^\d.\-]/g, '');
   return parseFloat(s) || 0;
 }
