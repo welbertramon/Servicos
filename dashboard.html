@@ -1738,6 +1738,8 @@ async function processImport() {
         Object.entries(r).forEach(([k, v]) => {
           if (v instanceof Date) {
             obj[String(k).trim()] = v.toISOString().slice(0, 10);
+          } else if (typeof v === 'number') {
+            obj[String(k).trim()] = v;          // mantém como número — não converter para string
           } else {
             obj[String(k).trim()] = String(v === null || v === undefined ? '' : v);
           }
