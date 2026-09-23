@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Painel de Serviços</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -551,10 +554,17 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrfxOUIuYQ_4CO
 function loadConfig() { /* URL fixa — nada a carregar */ }
 function saveConfig() { /* URL fixa — nada a salvar */ }
 
-// Coluna M = "Status do produto" — serviços começam com SERVICO, exceto CANCELADO
+// Coluna M = "Status do produto" — serviços começam com SERVICO, exceto CANCELADO.
+// No novo formato LM, serviços com status 'PENDENTE' são identificados pelo código de produto
+// (códigos de serviço LM começam com 4 ou 5 e têm 8 dígitos, ex: 50045023, 49998927).
 function isService(row) {
   const val = (getField(row, 'Status do produto', 'status do produto') || '').toUpperCase().trim();
-  return val.startsWith('SERVICO') && !val.includes('CANCELADO');
+  if (val.startsWith('SERVICO') && !val.includes('CANCELADO')) return true;
+  if (val === 'PENDENTE') {
+    const code = (row['__cod_produto'] || '').toString().trim();
+    return /^[45]\d{7}$/.test(code);
+  }
+  return false;
 }
 
 // Coluna J = "Descrição" — visitas técnicas começam com VISITA
@@ -1673,6 +1683,7 @@ function fixColumnShift(rows) {
   const ldapPattern = /^\d{5,}\s*[-–]/;
   return rows.map(row => {
     const r = { ...row };
+    r['__cod_produto']            = row['Descrição']                  || '';  // preserva código numérico de produto/serviço
     r['Descrição']                = row['Seção']                      || '';
     r['Seção']                    = row['Top']                        || '';
     r['Top']                      = row['Status do produto']          || '';
