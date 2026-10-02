@@ -1033,7 +1033,7 @@ function renderKpiMaster(services, visits) {
         ${c.sub ? `<span class="badge" style="background:var(--${c.color}-light);color:var(--${c.color});font-size:1rem;padding:4px 12px">${c.sub}</span>` : ''}
       </div>
       <div style="font-size:2.4rem;font-weight:700;line-height:1.1;${valColor}color:${c.alert?'#ef4444':'#1f2937'}">${c.value}</div>
-      <div style="font-size:1.15rem;color:#6b7280;margin-top:6px">${c.label}</div>
+      <div style="font-size:1.35rem;color:#6b7280;margin-top:8px;font-weight:500;line-height:1.25">${c.label}</div>
     </div>`;
   }).join('');
 }
