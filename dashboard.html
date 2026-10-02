@@ -471,7 +471,7 @@
     </section>
 
     <!-- Gráficos resumo -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 items-start">
       <div class="card">
         <h3 class="card-title">Top 15 Vendedores por Serviços (R$)</h3>
         <div id="container-vendedor-val" style="position:relative"><canvas id="chart-vendedor-val"></canvas></div>
@@ -1084,11 +1084,11 @@ function renderVendedorChart(services) {
     .sort((a, b) => b.val - a.val)
     .slice(0, 15);
 
-  setChartHeight('container-vendedor-val', sorted.length, 44, sorted.length * 44 + 40, 760);
+  setChartHeight('container-vendedor-val', sorted.length, 34, 260, 520);
 
   mkChart('chart-vendedor-val', 'bar', {
     labels: sorted.map(r => r.name),
-    datasets: [{ label: 'Receita (R$)', data: sorted.map(r => r.val), backgroundColor: PALETTE, barThickness: 20, maxBarThickness: 20 }]
+    datasets: [{ label: 'Receita (R$)', data: sorted.map(r => r.val), backgroundColor: PALETTE, barThickness: 12, maxBarThickness: 12, categoryPercentage: 0.62, barPercentage: 0.72 }]
   }, {
     indexAxis: 'y',
     plugins: {
@@ -1097,19 +1097,19 @@ function renderVendedorChart(services) {
         anchor: 'end',
         align: 'end',
         color: '#253B35',
-        font: { size: 18, weight: '700' },
+        font: { size: 16, weight: '700', lineHeight: 1.0 },
         formatter: v => 'R$ ' + fmtK(v),
         clip: false,
       }
     },
-    layout: { padding: { right: 80 } },
+    layout: { padding: { top: 0, right: 64, bottom: 0, left: 0 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
         grid: { display: false }, border: { display: false },
         ticks: {
-          font: { size: 17, weight: '600' },
-          padding: 2,
+          font: { size: 15, weight: '600', lineHeight: 1.0 },
+          padding: 0,
           callback: function(val) {
             return wrapLabel(this.getLabelForValue(val), 20);
           }
@@ -1151,11 +1151,11 @@ function renderSecaoValorChart(services) {
     s.val === 0 ? '#ef4444' : PALETTE[i % PALETTE.length]
   );
 
-  setChartHeight('container-secao-valor', sorted.length, 44, sorted.length * 44 + 40, 760);
+  setChartHeight('container-secao-valor', sorted.length, 32, 360, 520);
 
   mkChart('chart-secao-valor', 'bar', {
     labels: sorted.map(s => s.sec),
-    datasets: [{ label: 'Valor (R$)', data: sorted.map(s => s.val), backgroundColor: colors, barThickness: 20, maxBarThickness: 20 }]
+    datasets: [{ label: 'Valor (R$)', data: sorted.map(s => s.val), backgroundColor: colors, barThickness: 12, maxBarThickness: 12, categoryPercentage: 0.62, barPercentage: 0.72 }]
   }, {
     indexAxis: 'y',
     plugins: {
@@ -1163,20 +1163,20 @@ function renderSecaoValorChart(services) {
       datalabels: {
         anchor: 'end',
         align: 'end',
-        font: { size: 18, weight: '700' },
+        font: { size: 16, weight: '700', lineHeight: 1.0 },
         clip: false,
         color: ctx => ctx.dataset.data[ctx.dataIndex] === 0 ? '#ef4444' : '#253B35',
         formatter: v => v === 0 ? 'Sem vendas' : 'R$ ' + fmtK(v),
       }
     },
-    layout: { padding: { right: 96 } },
+    layout: { padding: { top: 0, right: 76, bottom: 0, left: 0 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
         grid: { display: false }, border: { display: false },
         ticks: {
-          font: { size: 17, weight: '600' },
-          padding: 2,
+          font: { size: 15, weight: '600', lineHeight: 1.0 },
+          padding: 0,
           callback: function(val) {
             return wrapLabel(this.getLabelForValue(val), 22);
           }
