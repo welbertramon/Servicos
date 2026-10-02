@@ -185,58 +185,82 @@
     }
   </style>
     <style>
-  /* ===== AUMENTO DE FONTE — Painel de Serviços ===== */
+  /* ===== TIPOGRAFIA AMPLIADA — Painel de Serviços ===== */
 
-  html { font-size: 18px; }
-  body { font-size: 18px; }
+  /* Base realmente perceptível */
+  html, body { font-size: 20px !important; }
 
-  .text-xs   { font-size: 15px !important; }
-  .text-sm   { font-size: 17px !important; }
-  .text-base { font-size: 18px !important; }
-  .text-lg   { font-size: 21px !important; }
-  .text-xl   { font-size: 25px !important; }
-  .text-2xl  { font-size: 30px !important; }
-  .text-3xl  { font-size: 36px !important; }
-  .text-4xl  { font-size: 42px !important; }
+  /* Força tamanhos maiores dentro do app, inclusive sobre Tailwind */
+  #app .text-\[10px\] { font-size: 15px !important; line-height: 1.25 !important; }
+  #app .text-xs   { font-size: 16px !important; line-height: 1.35 !important; }
+  #app .text-sm   { font-size: 18px !important; line-height: 1.4 !important; }
+  #app .text-base { font-size: 20px !important; line-height: 1.4 !important; }
+  #app .text-lg   { font-size: 23px !important; line-height: 1.3 !important; }
+  #app .text-xl   { font-size: 28px !important; line-height: 1.2 !important; }
+  #app .text-2xl  { font-size: 34px !important; line-height: 1.15 !important; }
+  #app .text-3xl  { font-size: 42px !important; line-height: 1.1 !important; }
+  #app .text-4xl  { font-size: 48px !important; line-height: 1.05 !important; }
 
-  .section-title { font-size: 1rem !important; }
-  .card-title { font-size: 1.25rem !important; font-weight: 700; }
-  .tab-btn { font-size: 1rem !important; }
-  .badge { font-size: .9rem !important; }
+  /* Header */
+  #app .lm-header h1 { font-size: 20px !important; }
+  #app #last-update { font-size: 15px !important; }
+  #app .lm-header button { font-size: 16px !important; }
 
-  .card table,
-  .card table td,
-  .card table th,
-  table, th, td { font-size: 1rem !important; }
+  /* Filtros e navegação */
+  #app .filter-bar label { font-size: 16px !important; }
+  #app .filter-bar select,
+  #app .filter-bar input,
+  #app .filter-bar button { font-size: 17px !important; }
+  #app .tab-btn { font-size: 18px !important; padding: 10px 14px !important; }
 
-  .cell-name { font-size: .95rem !important; max-width: 260px; }
+  /* Seções e cards */
+  #app .section-title { font-size: 18px !important; }
+  #app .card-title { font-size: 22px !important; font-weight: 700 !important; }
+  #app .card { font-size: 18px !important; }
+  #app .badge { font-size: 15px !important; }
 
-  .filter-bar label { font-size: .9rem !important; }
-  .filter-bar select,
-  .filter-bar input { font-size: 1rem !important; }
+  /* Tabelas */
+  #app table,
+  #app table th,
+  #app table td,
+  #app .card table,
+  #app .card table th,
+  #app .card table td { font-size: 17px !important; }
+  #app .cell-name { font-size: 17px !important; max-width: 300px !important; }
 
-  .insight-card,
-  #ai-output,
-  .ai-loader { font-size: 1rem !important; }
+  /* Textos de Insights */
+  #app .insight-card,
+  #app #ai-output,
+  #app .ai-loader { font-size: 17px !important; }
 
-  #main-content { max-width: 88%; }
+  /* Inputs do login também maiores */
+  #login-screen { font-size: 18px !important; }
+  #login-screen .text-xs { font-size: 15px !important; }
+  #login-screen .text-sm { font-size: 17px !important; }
+  #login-screen .text-lg { font-size: 22px !important; }
+  #login-screen .login-input { font-size: 17px !important; }
 
-  @media (max-width: 1600px) { #main-content { max-width: 92%; } }
-  @media (max-width: 1280px) { #main-content { max-width: 96%; } }
-  @media (max-width: 900px)  { #main-content { max-width: 100%; } }
+  /* Usa melhor a largura do monitor */
+  #main-content { max-width: 92% !important; }
+  @media (max-width: 1600px) { #main-content { max-width: 96% !important; } }
+  @media (max-width: 1280px) { #main-content { max-width: 98% !important; } }
+  @media (max-width: 900px)  { #main-content { max-width: 100% !important; } }
 
+  /* No celular, mantém legibilidade em vez de voltar a fontes muito pequenas */
   @media (max-width: 640px) {
-    html { font-size: 16px; }
-    .text-xs { font-size: 13px !important; }
-    .text-sm { font-size: 15px !important; }
-    .cell-name { font-size: .85rem !important; max-width: 170px; }
+    html, body { font-size: 17px !important; }
+    #app .text-xs { font-size: 14px !important; }
+    #app .text-sm { font-size: 16px !important; }
+    #app .cell-name { font-size: 15px !important; max-width: 190px !important; }
+    #app .card-title { font-size: 19px !important; }
+    #app .section-title { font-size: 16px !important; }
   }
 
   @media print {
-    body { font-size: 20px; }
-    .text-xs { font-size: 16px !important; }
-    .text-sm { font-size: 18px !important; }
-    table { font-size: 16px !important; }
+    body { font-size: 20px !important; }
+    #app .text-xs { font-size: 16px !important; }
+    #app .text-sm { font-size: 18px !important; }
+    #app table, #app th, #app td { font-size: 17px !important; }
   }
 </style>
 
@@ -572,6 +596,10 @@
 <script>
 // Registra plugin de rótulos de dados globalmente
 Chart.register(ChartDataLabels);
+
+// Fonte padrão dos elementos desenhados pelo Chart.js
+Chart.defaults.font.size = 17;
+Chart.defaults.font.family = "'Segoe UI', sans-serif";
 
 // ───────────────────────────────────────────────
 // CONFIG & STATE
@@ -1056,7 +1084,7 @@ function renderVendedorChart(services) {
     .sort((a, b) => b.val - a.val)
     .slice(0, 15);
 
-  setChartHeight('container-vendedor-val', sorted.length, 60, sorted.length * 60 + 50, 980);
+  setChartHeight('container-vendedor-val', sorted.length, 64, sorted.length * 64 + 60, 1050);
 
   mkChart('chart-vendedor-val', 'bar', {
     labels: sorted.map(r => r.name),
@@ -1069,18 +1097,18 @@ function renderVendedorChart(services) {
         anchor: 'end',
         align: 'end',
         color: '#253B35',
-        font: { size: 17, weight: '700' },
+        font: { size: 18, weight: '700' },
         formatter: v => 'R$ ' + fmtK(v),
         clip: false,
       }
     },
-    layout: { padding: { right: 110 } },
+    layout: { padding: { right: 80 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
         grid: { display: false }, border: { display: false },
         ticks: {
-          font: { size: 16, weight: '600' },
+          font: { size: 17, weight: '600' },
           callback: function(val) {
             return wrapLabel(this.getLabelForValue(val), 20);
           }
@@ -1122,7 +1150,7 @@ function renderSecaoValorChart(services) {
     s.val === 0 ? '#ef4444' : PALETTE[i % PALETTE.length]
   );
 
-  setChartHeight('container-secao-valor', sorted.length, 60, sorted.length * 60 + 50, 980);
+  setChartHeight('container-secao-valor', sorted.length, 64, sorted.length * 64 + 60, 1050);
 
   mkChart('chart-secao-valor', 'bar', {
     labels: sorted.map(s => s.sec),
@@ -1134,19 +1162,19 @@ function renderSecaoValorChart(services) {
       datalabels: {
         anchor: 'end',
         align: 'end',
-        font: { size: 17, weight: '700' },
+        font: { size: 18, weight: '700' },
         clip: false,
         color: ctx => ctx.dataset.data[ctx.dataIndex] === 0 ? '#ef4444' : '#253B35',
         formatter: v => v === 0 ? 'Sem vendas' : 'R$ ' + fmtK(v),
       }
     },
-    layout: { padding: { right: 120 } },
+    layout: { padding: { right: 96 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
         grid: { display: false }, border: { display: false },
         ticks: {
-          font: { size: 16, weight: '600' },
+          font: { size: 17, weight: '600' },
           callback: function(val) {
             return wrapLabel(this.getLabelForValue(val), 22);
           }
