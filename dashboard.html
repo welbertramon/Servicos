@@ -184,6 +184,40 @@
       50%      { box-shadow: 0 6px 28px rgba(188,224,94,.6); }
     }
   </style>
+    <style>
+  /* ===== AUMENTO DE FONTE — Painel de Serviços ===== */
+
+  /* 1. Base geral do painel */
+  body {
+    font-size: 18px; /* padrão ~16px. Teste 17, 18, 20... */
+  }
+
+  /* 2. Classes de texto usadas no painel (Tailwind) */
+  .text-xs   { font-size: 14px !important; } /* era ~12px */
+  .text-sm   { font-size: 16px !important; } /* era ~14px */
+  .text-base { font-size: 18px !important; }
+  .text-lg   { font-size: 20px !important; }
+  .text-xl   { font-size: 24px !important; }
+  .text-2xl  { font-size: 28px !important; }
+  .text-3xl  { font-size: 32px !important; }
+
+  /* 3. Tabelas (vendedores, seções, top 10) */
+  table {
+    font-size: 15px;
+  }
+  th, td {
+    padding: 8px 10px; /* mais respiro nas células */
+  }
+
+  /* 4. Modo impressão / print para WhatsApp */
+  @media print {
+    body     { font-size: 20px; }
+    .text-xs { font-size: 16px !important; }
+    .text-sm { font-size: 18px !important; }
+    table    { font-size: 16px; }
+  }
+</style>
+
 </head>
 <body>
 
