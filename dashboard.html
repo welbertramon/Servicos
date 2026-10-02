@@ -1067,6 +1067,25 @@ function wrapLabel(str, maxChars) {
   return lines; // Chart.js aceita array → renderiza em múltiplas linhas
 }
 
+
+function nomeCurtoVendedor(ldap) {
+  const bruto = String(ldap || '').trim();
+  if (!bruto) return '—';
+
+  // Remove matrícula/código antes do " - " quando existir.
+  const semCodigo = bruto.includes(' - ')
+    ? bruto.split(' - ').slice(1).join(' - ').trim()
+    : bruto;
+
+  const partes = semCodigo.split(/\s+/).filter(Boolean);
+
+  // Mantém nomes/canais de uma palavra, como ECOMMERCE.
+  if (partes.length <= 2) return partes.join(' ');
+
+  // Exibe apenas primeiro + segundo nome.
+  return partes.slice(0, 2).join(' ');
+}
+
 // Gráfico: Vendas de Serviços por Vendedor (R$) — barras horizontais
 function setChartHeight(containerId, items, pxPerItem, min, max) {
   const h = Math.min(Math.max(items * pxPerItem, min), max);
@@ -1078,21 +1097,17 @@ function renderVendedorChart(services) {
   const by = groupByFn(services, r => getLDAP(r));
   const sorted = Object.entries(by)
     .map(([ldap, rows]) => ({
-      name: (() => {
-        const nomeCompleto = ldap.split(' - ').slice(1).join(' - ') || ldap;
-        const partes = nomeCompleto.trim().split(/\s+/);
-        return partes.slice(0, 2).join(' ');
-      })(),
+      name: nomeCurtoVendedor(ldap),
       val:  rows.reduce((s, r) => s + getValorItem(r), 0),
     }))
     .sort((a, b) => b.val - a.val)
     .slice(0, 15);
 
-  setChartHeight('container-vendedor-val', sorted.length, 34, 260, 520);
+  setChartHeight('container-vendedor-val', sorted.length, 42, 300, 680);
 
   mkChart('chart-vendedor-val', 'bar', {
     labels: sorted.map(r => r.name),
-    datasets: [{ label: 'Receita (R$)', data: sorted.map(r => r.val), backgroundColor: PALETTE, barThickness: 12, maxBarThickness: 12, categoryPercentage: 0.62, barPercentage: 0.72 }]
+    datasets: [{ label: 'Receita (R$)', data: sorted.map(r => r.val), backgroundColor: PALETTE, barThickness: 14, maxBarThickness: 14, categoryPercentage: 0.72, barPercentage: 0.78 }]
   }, {
     indexAxis: 'y',
     plugins: {
@@ -1112,10 +1127,13 @@ function renderVendedorChart(services) {
       y: {
         grid: { display: false }, border: { display: false },
         ticks: {
-          font: { size: 15, weight: '600', lineHeight: 1.0 },
-          padding: 0,
+          autoSkip: false,
+          font: { size: 15, weight: '600', lineHeight: 1.1 },
+          padding: 6,
+          maxRotation: 0,
+          minRotation: 0,
           callback: function(val) {
-            return wrapLabel(this.getLabelForValue(val), 20);
+            return this.getLabelForValue(val);
           }
         }
       }
