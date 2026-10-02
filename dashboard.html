@@ -1078,7 +1078,11 @@ function renderVendedorChart(services) {
   const by = groupByFn(services, r => getLDAP(r));
   const sorted = Object.entries(by)
     .map(([ldap, rows]) => ({
-      name: ldap.split(' - ').slice(1).join(' - ') || ldap,
+      name: (() => {
+        const nomeCompleto = ldap.split(' - ').slice(1).join(' - ') || ldap;
+        const partes = nomeCompleto.trim().split(/\s+/);
+        return partes.slice(0, 2).join(' ');
+      })(),
       val:  rows.reduce((s, r) => s + getValorItem(r), 0),
     }))
     .sort((a, b) => b.val - a.val)
@@ -1194,7 +1198,11 @@ function renderVendedoresTable(services) {
   const by = groupByFn(services, r => getLDAP(r));
   const rows = Object.entries(by)
     .map(([ldap, rows]) => ({
-      name: ldap.split(' - ').slice(1).join(' - ') || ldap,
+      name: (() => {
+        const nomeCompleto = ldap.split(' - ').slice(1).join(' - ') || ldap;
+        const partes = nomeCompleto.trim().split(/\s+/);
+        return partes.slice(0, 2).join(' ');
+      })(),
       qtd:  rows.length,
       val:  rows.reduce((s, r) => s + getValorItem(r), 0),
     }))
