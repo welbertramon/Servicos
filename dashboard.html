@@ -460,6 +460,227 @@
   }
 </style>
 
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   MOBILE EXECUTIVO ULTRACOMPACTO — SOBRESCRITA FINAL
+   Objetivo: Receita + 6 KPIs + 2 gráficos na primeira tela.
+   Desktop não é alterado.
+   ═══════════════════════════════════════════════════════════ */
+@media screen and (max-width: 900px) {
+
+  html, body {
+    font-size: 14px !important;
+  }
+
+  #main-content {
+    max-width: 100% !important;
+    padding: 4px 6px 8px !important;
+  }
+
+  /* Cabeçalho compacto */
+  .lm-header .w-full {
+    padding: 4px 6px !important;
+    min-height: 38px !important;
+  }
+
+  .lm-header img {
+    height: 24px !important;
+  }
+
+  #app .lm-header h1 {
+    font-size: 11px !important;
+    line-height: 1.05 !important;
+  }
+
+  .lm-header #last-update {
+    display: none !important;
+  }
+
+  #app .lm-header button {
+    font-size: 8px !important;
+    line-height: 1 !important;
+    padding: 4px 6px !important;
+    border-radius: 5px !important;
+  }
+
+  .lm-header .flex.items-center.gap-2 {
+    gap: 3px !important;
+  }
+
+  /* O resumo mobile é a visão principal */
+  #mobile-executive {
+    display: block !important;
+    margin: 0 0 4px !important;
+  }
+
+  /* Evita duplicidade dos cards desktop no celular */
+  #receita-destaque,
+  #kpi-section {
+    display: none !important;
+  }
+
+  /* Receita: faixa baixa, sem espaço vago */
+  .mobile-revenue-card {
+    border-radius: 8px !important;
+    padding: 5px 8px !important;
+    margin: 0 0 4px !important;
+    min-height: 34px !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-revenue-top {
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
+  .mobile-revenue-label {
+    font-size: 7.5px !important;
+    line-height: 1 !important;
+    margin-bottom: 1px !important;
+    letter-spacing: .04em !important;
+  }
+
+  .mobile-revenue-value {
+    font-size: 17px !important;
+    line-height: 1 !important;
+  }
+
+  .mobile-revenue-meta {
+    font-size: 7.5px !important;
+    line-height: 1.15 !important;
+    padding-top: 0 !important;
+  }
+
+  /* 6 KPIs = 3 x 2, mas agora sem espaço interno desperdiçado */
+  .mobile-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 3px !important;
+  }
+
+  .mobile-kpi-card {
+    display: grid !important;
+    grid-template-columns: 14px minmax(0, 1fr) !important;
+    grid-template-rows: 18px 15px !important;
+    column-gap: 3px !important;
+    row-gap: 0 !important;
+    align-items: center !important;
+
+    min-height: 39px !important;
+    height: 39px !important;
+    padding: 3px 4px !important;
+    border-radius: 7px !important;
+    border-left-width: 2px !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  .mobile-kpi-head {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+  }
+
+  .mobile-kpi-icon {
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  .mobile-kpi-value {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .mobile-kpi-card.kpi-money .mobile-kpi-value {
+    font-size: 11.5px !important;
+  }
+
+  .mobile-kpi-label {
+    grid-column: 1 / 3 !important;
+    grid-row: 2 !important;
+    margin: 0 !important;
+    font-size: 7.8px !important;
+    line-height: 1.02 !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* O bloco executivo inteiro fica bem curto */
+  #mobile-executive {
+    max-height: 126px !important;
+  }
+
+  /* Filtros/abas ocupam o mínimo quando estiverem visíveis */
+  .filter-bar {
+    margin-bottom: 4px !important;
+    padding: 5px !important;
+  }
+
+  .tab-bar {
+    margin-bottom: 4px !important;
+    padding: 2px !important;
+  }
+
+  #app .tab-btn {
+    font-size: 9px !important;
+    line-height: 1 !important;
+    padding: 5px 6px !important;
+  }
+
+  /* Cards dos dois gráficos: extremamente econômicos */
+  #tab-resumo > .grid {
+    gap: 4px !important;
+    margin-bottom: 4px !important;
+  }
+
+  #tab-resumo .card {
+    padding: 5px 6px !important;
+    border-radius: 9px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05) !important;
+    min-height: 0 !important;
+  }
+
+  #app #tab-resumo .card-title {
+    font-size: 10px !important;
+    line-height: 1 !important;
+    margin: 0 0 2px !important;
+    font-weight: 700 !important;
+  }
+
+  /* Remove margens externas desnecessárias do bloco dos gráficos */
+  #tab-resumo {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #tab-resumo > .grid > .card {
+    align-self: start !important;
+    height: auto !important;
+  }
+
+  /* Canvas não ganha altura extra pelo CSS */
+  #container-vendedor-val,
+  #container-secao-valor {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+</style>
+
 </head>
 <body>
 
@@ -1373,11 +1594,26 @@ function renderVendedorChart(services) {
     .sort((a, b) => b.val - a.val)
     .slice(0, 15);
 
-  setChartHeight('container-vendedor-val', sorted.length, 42, 300, 680);
+  const mobileVendedor = window.matchMedia('(max-width: 900px)').matches;
+  setChartHeight(
+    'container-vendedor-val',
+    sorted.length,
+    mobileVendedor ? 11.5 : 42,
+    mobileVendedor ? 155 : 300,
+    mobileVendedor ? 190 : 680
+  );
 
   mkChart('chart-vendedor-val', 'bar', {
     labels: sorted.map(r => r.name),
-    datasets: [{ label: 'Receita (R$)', data: sorted.map(r => r.val), backgroundColor: PALETTE, barThickness: 14, maxBarThickness: 14, categoryPercentage: 0.72, barPercentage: 0.78 }]
+    datasets: [{
+      label: 'Receita (R$)',
+      data: sorted.map(r => r.val),
+      backgroundColor: PALETTE,
+      barThickness: mobileVendedor ? 6 : 14,
+      maxBarThickness: mobileVendedor ? 6 : 14,
+      categoryPercentage: mobileVendedor ? 0.82 : 0.72,
+      barPercentage: mobileVendedor ? 0.88 : 0.78
+    }]
   }, {
     indexAxis: 'y',
     plugins: {
@@ -1386,20 +1622,20 @@ function renderVendedorChart(services) {
         anchor: 'end',
         align: 'end',
         color: '#253B35',
-        font: { size: 16, weight: '700', lineHeight: 1.0 },
+        font: { size: mobileVendedor ? 7.5 : 16, weight: '700', lineHeight: 1.0 },
         formatter: v => 'R$ ' + fmtK(v),
         clip: false,
       }
     },
-    layout: { padding: { top: 0, right: 64, bottom: 0, left: 0 } },
+    layout: { padding: { top: 0, right: mobileVendedor ? 32 : 64, bottom: 0, left: 0 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
         grid: { display: false }, border: { display: false },
         ticks: {
           autoSkip: false,
-          font: { size: 15, weight: '600', lineHeight: 1.1 },
-          padding: 6,
+          font: { size: mobileVendedor ? 7.2 : 15, weight: '600', lineHeight: 1.0 },
+          padding: mobileVendedor ? 2 : 6,
           maxRotation: 0,
           minRotation: 0,
           callback: function(val) {
@@ -1452,11 +1688,26 @@ function renderSecaoValorChart(services) {
     s.val === 0 ? '#ef4444' : PALETTE[i % PALETTE.length]
   );
 
-  setChartHeight('container-secao-valor', sorted.length, 42, 300, 680);
+  const mobileSecao = window.matchMedia('(max-width: 900px)').matches;
+  setChartHeight(
+    'container-secao-valor',
+    sorted.length,
+    mobileSecao ? 11.5 : 42,
+    mobileSecao ? 155 : 300,
+    mobileSecao ? 190 : 680
+  );
 
   mkChart('chart-secao-valor', 'bar', {
     labels: sorted.map(s => nomeCurtoSecao(s.sec)),
-    datasets: [{ label: 'Valor (R$)', data: sorted.map(s => s.val), backgroundColor: colors, barThickness: 14, maxBarThickness: 14, categoryPercentage: 0.72, barPercentage: 0.78 }]
+    datasets: [{
+      label: 'Valor (R$)',
+      data: sorted.map(s => s.val),
+      backgroundColor: colors,
+      barThickness: mobileSecao ? 6 : 14,
+      maxBarThickness: mobileSecao ? 6 : 14,
+      categoryPercentage: mobileSecao ? 0.82 : 0.72,
+      barPercentage: mobileSecao ? 0.88 : 0.78
+    }]
   }, {
     indexAxis: 'y',
     plugins: {
@@ -1464,13 +1715,13 @@ function renderSecaoValorChart(services) {
       datalabels: {
         anchor: 'end',
         align: 'end',
-        font: { size: 16, weight: '700', lineHeight: 1.0 },
+        font: { size: mobileSecao ? 7.5 : 16, weight: '700', lineHeight: 1.0 },
         clip: false,
         color: ctx => ctx.dataset.data[ctx.dataIndex] === 0 ? '#ef4444' : '#253B35',
         formatter: v => v === 0 ? 'Sem vendas' : 'R$ ' + fmtK(v),
       }
     },
-    layout: { padding: { top: 0, right: 76, bottom: 0, left: 0 } },
+    layout: { padding: { top: 0, right: mobileSecao ? 36 : 76, bottom: 0, left: 0 } },
     scales: {
       x: { display: false, grid: { display: false }, border: { display: false } },
       y: {
@@ -1480,8 +1731,8 @@ function renderSecaoValorChart(services) {
           autoSkip: false,
           maxTicksLimit: 100,
           sampleSize: 100,
-          font: { size: 15, weight: '600', lineHeight: 1.1 },
-          padding: 6,
+          font: { size: mobileSecao ? 7.2 : 15, weight: '600', lineHeight: 1.0 },
+          padding: mobileSecao ? 2 : 6,
           maxRotation: 0,
           minRotation: 0,
           callback: function(val) {
