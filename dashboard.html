@@ -183,6 +183,145 @@
       0%,100% { box-shadow: 0 4px 20px rgba(0,0,0,.4); }
       50%      { box-shadow: 0 6px 28px rgba(188,224,94,.6); }
     }
+
+    /* ═══════════════════════════════════════════════════════
+       RESUMO EXECUTIVO MOBILE
+       No desktop nada muda. No celular, Receita + 6 KPIs
+       aparecem primeiro, antes de filtros e gráficos.
+       ═══════════════════════════════════════════════════════ */
+
+    #mobile-executive { display: none; }
+
+    @media (max-width: 640px) {
+      #main-content {
+        max-width: 100% !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        padding-top: 10px !important;
+      }
+
+      #mobile-executive {
+        display: block;
+        margin-bottom: 12px;
+      }
+
+      #receita-destaque,
+      #kpi-section {
+        display: none !important;
+      }
+
+      .mobile-revenue-card {
+        background: linear-gradient(135deg, #253B35 0%, #44823C 100%);
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: white;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      }
+
+      .mobile-revenue-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .mobile-revenue-label {
+        font-size: 11px;
+        line-height: 1.1;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: #BCE05E;
+        margin-bottom: 3px;
+      }
+
+      .mobile-revenue-value {
+        font-size: 27px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: -.02em;
+      }
+
+      .mobile-revenue-meta {
+        text-align: right;
+        font-size: 11px;
+        line-height: 1.35;
+        color: #e8f5d0;
+        white-space: nowrap;
+        padding-top: 2px;
+      }
+
+      .mobile-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .mobile-kpi-card {
+        position: relative;
+        min-height: 88px;
+        background: white;
+        border-radius: 13px;
+        padding: 10px 11px 9px;
+        border-left: 4px solid var(--mobile-kpi-color, #44823C);
+        box-shadow: 0 1px 4px rgba(0,0,0,.07);
+        overflow: hidden;
+      }
+
+      .mobile-kpi-card.alert { background: #fff7f7; }
+
+      .mobile-kpi-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 22px;
+        margin-bottom: 2px;
+      }
+
+      .mobile-kpi-icon {
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .mobile-kpi-value {
+        font-size: 25px;
+        line-height: 1.05;
+        font-weight: 800;
+        color: #1f2937;
+        letter-spacing: -.02em;
+        white-space: nowrap;
+      }
+
+      .mobile-kpi-card.alert .mobile-kpi-value { color: #ef4444; }
+
+      .mobile-kpi-label {
+        margin-top: 5px;
+        font-size: 13px;
+        line-height: 1.1;
+        font-weight: 700;
+        color: #4b5563;
+      }
+
+      .mobile-kpi-card.kpi-money .mobile-kpi-value { font-size: 21px; }
+
+      .filter-bar { margin-bottom: 10px; }
+      .tab-bar { margin-bottom: 12px; }
+
+      .lm-header .px-4 {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+      }
+
+      .lm-header img { height: 32px !important; }
+      .lm-header #last-update { display: none; }
+      .lm-header .flex.items-center.gap-2 { gap: 4px !important; }
+      .lm-header button {
+        padding: 5px 7px !important;
+        font-size: 11px !important;
+      }
+    }
+
   </style>
     <style>
   /* ===== TIPOGRAFIA AMPLIADA — Painel de Serviços ===== */
@@ -386,6 +525,10 @@
 <!-- ── MAIN ── -->
 <main class="px-3 sm:px-6 py-4 sm:py-6" id="main-content">
 
+  <!-- ══════ RESUMO EXECUTIVO MOBILE ══════ -->
+  <div id="mobile-executive" aria-label="Resumo executivo de serviços"></div>
+
+
   <!-- FILTER BAR (compartilhado entre abas) -->
   <div class="filter-bar">
     <!-- mobile: filtros em grid 2 colunas + botões -->
@@ -465,7 +608,7 @@
       </div>
     </div>
 
-    <section class="mb-6">
+    <section class="mb-6" id="kpi-section">
       <h2 class="section-title">KPIs Master</h2>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="kpi-master"></div>
     </section>
@@ -1006,12 +1149,12 @@ function renderKpiMaster(services, visits) {
   const secoesSemVenda = SECOES_FIXAS.filter(s => !(bySecao[s] && bySecao[s].length > 0)).length;
 
   const cards = [
-    { label: 'Qtd Serviços Vendidos', value: fmtQtd(totalLinhas), sub: '',                      color: 'green',  icon: '🛠' },
-    { label: 'Visitas Técnicas',      value: fmtQtd(visitLinhas), sub: '',                      color: 'purple', icon: '🔍' },
-    { label: 'Receita de Serviços',   value: fmtBRL(totalVal),    sub: 'valor total',           color: 'blue',   icon: '💰' },
-    { label: 'Vendedores',            value: sellers.size,         sub: 'com venda de serviço', color: 'teal',   icon: '👤' },
-    { label: 'Seções com Serviço',    value: secoes.size,          sub: 'seções distintas',     color: 'rose',   icon: '📂' },
-    { label: 'Seções sem Venda',      value: secoesSemVenda,       sub: 'das 15 seções',        color: 'amber',  icon: '⚠️', alert: secoesSemVenda > 0 },
+    { label: 'Qtd Serviços Vendidos', mobileLabel: 'Serviços vendidos', value: fmtQtd(totalLinhas), sub: '',                      color: 'green',  icon: '🛠' },
+    { label: 'Visitas Técnicas',      mobileLabel: 'Visitas técnicas',  value: fmtQtd(visitLinhas), sub: '',                      color: 'purple', icon: '🔍' },
+    { label: 'Receita de Serviços',   mobileLabel: 'Receita serviços',  value: fmtBRL(totalVal),    sub: 'valor total',           color: 'blue',   icon: '💰', money: true },
+    { label: 'Vendedores',            mobileLabel: 'Vendedores',        value: sellers.size,         sub: 'com venda de serviço', color: 'teal',   icon: '👤' },
+    { label: 'Seções com Serviço',    mobileLabel: 'Seções com serviço',value: secoes.size,          sub: 'seções distintas',     color: 'rose',   icon: '📂' },
+    { label: 'Seções sem Venda',      mobileLabel: 'Seções sem venda',  value: secoesSemVenda,       sub: 'das 15 seções',        color: 'amber',  icon: '⚠️', alert: secoesSemVenda > 0 },
   ];
 
   // Destaque receita total
@@ -1022,6 +1165,39 @@ function renderKpiMaster(services, visits) {
   if (dEl) dEl.textContent = fmtBRL(totalVal);
   if (dLin) dLin.textContent = `${fmtQtd(totalLinhas)} linhas de serviço`;
   if (dTick) dTick.textContent = `Ticket médio: ${fmtBRL(ticket)}`;
+
+
+  // Resumo executivo exclusivo para mobile
+  const mobileExecutive = document.getElementById('mobile-executive');
+  if (mobileExecutive) {
+    mobileExecutive.innerHTML = `
+      <div class="mobile-revenue-card">
+        <div class="mobile-revenue-top">
+          <div>
+            <div class="mobile-revenue-label">Receita Total de Serviços</div>
+            <div class="mobile-revenue-value">${fmtBRL(totalVal)}</div>
+          </div>
+          <div class="mobile-revenue-meta">
+            <div>${fmtQtd(totalLinhas)} serviços</div>
+            <div>Ticket: ${fmtBRL(ticket)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mobile-kpi-grid">
+        ${cards.map(c => `
+          <div class="mobile-kpi-card ${c.alert ? 'alert' : ''} ${c.money ? 'kpi-money' : ''}"
+               style="--mobile-kpi-color:${c.alert ? '#ef4444' : `var(--${c.color})`}">
+            <div class="mobile-kpi-head">
+              <span class="mobile-kpi-icon">${c.icon}</span>
+            </div>
+            <div class="mobile-kpi-value">${c.value}</div>
+            <div class="mobile-kpi-label">${c.mobileLabel}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
 
   document.getElementById('kpi-master').innerHTML = cards.map(c => {
     const alertStyle = c.alert ? 'border-color:#ef4444;background:#fef2f2;' : `border-color:var(--${c.color});`;
