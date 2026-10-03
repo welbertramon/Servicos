@@ -192,7 +192,7 @@
 
     #mobile-executive { display: none; }
 
-    @media screen and (max-width: 900px), screen and (hover: none) and (pointer: coarse) {
+    @media (max-width: 900px) {
       #main-content {
         max-width: 100% !important;
         padding-left: 10px !important;
@@ -211,7 +211,6 @@
       }
 
       .mobile-revenue-card {
-    display: none !important;
         background: linear-gradient(135deg, #253B35 0%, #44823C 100%);
         border-radius: 14px;
         padding: 9px 12px;
@@ -468,7 +467,7 @@
    Objetivo: Receita + 6 KPIs + 2 gráficos na primeira tela.
    Desktop não é alterado.
    ═══════════════════════════════════════════════════════════ */
-@media screen and (max-width: 900px), screen and (hover: none) and (pointer: coarse) {
+@media screen and (max-width: 900px) {
 
   html, body {
     font-size: 14px !important;
@@ -512,7 +511,7 @@
   /* O resumo mobile é a visão principal */
   #mobile-executive {
     display: block !important;
-    margin: 0 0 2px !important;
+    margin: 0 0 4px !important;
   }
 
   /* Evita duplicidade dos cards desktop no celular */
@@ -622,7 +621,7 @@
 
   /* O bloco executivo inteiro fica bem curto */
   #mobile-executive {
-    max-height: 88px !important;
+    max-height: 126px !important;
   }
 
   /* Filtros/abas ocupam o mínimo quando estiverem visíveis */
@@ -678,37 +677,6 @@
   #container-secao-valor {
     margin: 0 !important;
     padding: 0 !important;
-  }
-}
-</style>
-
-
-<style>
-/* CORREÇÃO FINAL DE DETECÇÃO MOBILE */
-@media screen and (max-width: 900px), screen and (hover: none) and (pointer: coarse) {
-  #receita-destaque {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    max-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    overflow: hidden !important;
-  }
-
-  #kpi-section {
-    display: none !important;
-  }
-
-  #mobile-executive {
-    display: block !important;
-  }
-
-  /* Também elimina o card verde duplicado que existe dentro do resumo mobile */
-  #mobile-executive .mobile-revenue-card {
-    display: none !important;
   }
 }
 </style>
@@ -1626,7 +1594,7 @@ function renderVendedorChart(services) {
     .sort((a, b) => b.val - a.val)
     .slice(0, 15);
 
-  const mobileVendedor = window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
+  const mobileVendedor = window.matchMedia('(max-width: 900px)').matches;
   setChartHeight(
     'container-vendedor-val',
     sorted.length,
@@ -1720,7 +1688,7 @@ function renderSecaoValorChart(services) {
     s.val === 0 ? '#ef4444' : PALETTE[i % PALETTE.length]
   );
 
-  const mobileSecao = window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
+  const mobileSecao = window.matchMedia('(max-width: 900px)').matches;
   setChartHeight(
     'container-secao-valor',
     sorted.length,
@@ -2526,6 +2494,30 @@ if (sessionStorage.getItem(SESSION_KEY) === '1') {
 </script>
 
 </div><!-- /app -->
+
+<script>
+(function () {
+  function ajustarSomenteCardReceitaMobile() {
+    const ua = navigator.userAgent || '';
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+    const card = document.getElementById('receita-destaque');
+    if (!card) return;
+
+    if (isMobile) {
+      card.style.setProperty('display', 'none', 'important');
+    } else {
+      card.style.removeProperty('display');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ajustarSomenteCardReceitaMobile, { once: true });
+  } else {
+    ajustarSomenteCardReceitaMobile();
+  }
+})();
+</script>
+
 </body>
 </html>
 <!-- rebuild  -->
