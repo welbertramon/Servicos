@@ -211,6 +211,7 @@
       }
 
       .mobile-revenue-card {
+    display: none !important;
         background: linear-gradient(135deg, #253B35 0%, #44823C 100%);
         border-radius: 14px;
         padding: 9px 12px;
@@ -511,7 +512,7 @@
   /* O resumo mobile é a visão principal */
   #mobile-executive {
     display: block !important;
-    margin: 0 0 4px !important;
+    margin: 0 0 2px !important;
   }
 
   /* Evita duplicidade dos cards desktop no celular */
@@ -621,7 +622,7 @@
 
   /* O bloco executivo inteiro fica bem curto */
   #mobile-executive {
-    max-height: 126px !important;
+    max-height: 88px !important;
   }
 
   /* Filtros/abas ocupam o mínimo quando estiverem visíveis */
@@ -1429,7 +1430,7 @@ function renderKpiMaster(services, visits) {
   const cards = [
     { label: 'Qtd Serviços Vendidos', mobileLabel: 'Serviços vendidos', value: fmtQtd(totalLinhas), sub: '',                      color: 'green',  icon: '🛠' },
     { label: 'Visitas Técnicas',      mobileLabel: 'Visitas técnicas',  value: fmtQtd(visitLinhas), sub: '',                      color: 'purple', icon: '🔍' },
-    { label: 'Receita de Serviços',   mobileLabel: 'Receita serviços',  value: fmtBRL(totalVal),    sub: 'valor total',           color: 'blue',   icon: '💰', money: true },
+    { label: 'Venda de Serviços',     mobileLabel: 'Venda serviços',  value: fmtBRL(totalVal),    sub: 'valor total',           color: 'blue',   icon: '💰', money: true },
     { label: 'Vendedores',            mobileLabel: 'Vendedores',        value: sellers.size,         sub: 'com venda de serviço', color: 'teal',   icon: '👤' },
     { label: 'Seções com Serviço',    mobileLabel: 'Seções com serviço',value: secoes.size,          sub: 'seções distintas',     color: 'rose',   icon: '📂' },
     { label: 'Seções sem Venda',      mobileLabel: 'Seções sem venda',  value: secoesSemVenda,       sub: 'das 15 seções',        color: 'amber',  icon: '⚠️', alert: secoesSemVenda > 0 },
@@ -1479,7 +1480,7 @@ function renderKpiMaster(services, visits) {
       const mobileLabels = [
         'Serviços vendidos',
         'Visitas técnicas',
-        'Receita serviços',
+        'Venda serviços',
         'Vendedores',
         'Seções com serviço',
         'Seções sem venda'
