@@ -192,7 +192,7 @@
 
     #mobile-executive { display: none; }
 
-    @media (max-width: 900px) {
+    @media screen and (max-width: 900px), screen and (hover: none) and (pointer: coarse) {
       #main-content {
         max-width: 100% !important;
         padding-left: 10px !important;
@@ -468,7 +468,7 @@
    Objetivo: Receita + 6 KPIs + 2 gráficos na primeira tela.
    Desktop não é alterado.
    ═══════════════════════════════════════════════════════════ */
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 900px), screen and (hover: none) and (pointer: coarse) {
 
   html, body {
     font-size: 14px !important;
@@ -678,6 +678,37 @@
   #container-secao-valor {
     margin: 0 !important;
     padding: 0 !important;
+  }
+}
+</style>
+
+
+<style>
+/* CORREÇÃO FINAL DE DETECÇÃO MOBILE */
+@media screen and (max-width: 900px), screen and (hover: none) and (pointer: coarse) {
+  #receita-destaque {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #kpi-section {
+    display: none !important;
+  }
+
+  #mobile-executive {
+    display: block !important;
+  }
+
+  /* Também elimina o card verde duplicado que existe dentro do resumo mobile */
+  #mobile-executive .mobile-revenue-card {
+    display: none !important;
   }
 }
 </style>
@@ -1595,7 +1626,7 @@ function renderVendedorChart(services) {
     .sort((a, b) => b.val - a.val)
     .slice(0, 15);
 
-  const mobileVendedor = window.matchMedia('(max-width: 900px)').matches;
+  const mobileVendedor = window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
   setChartHeight(
     'container-vendedor-val',
     sorted.length,
@@ -1689,7 +1720,7 @@ function renderSecaoValorChart(services) {
     s.val === 0 ? '#ef4444' : PALETTE[i % PALETTE.length]
   );
 
-  const mobileSecao = window.matchMedia('(max-width: 900px)').matches;
+  const mobileSecao = window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
   setChartHeight(
     'container-secao-valor',
     sorted.length,
