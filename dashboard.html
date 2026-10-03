@@ -1167,38 +1167,6 @@ function renderKpiMaster(services, visits) {
   if (dTick) dTick.textContent = `Ticket médio: ${fmtBRL(ticket)}`;
 
 
-  // Resumo executivo exclusivo para mobile
-  const mobileExecutive = document.getElementById('mobile-executive');
-  if (mobileExecutive) {
-    mobileExecutive.innerHTML = `
-      <div class="mobile-revenue-card">
-        <div class="mobile-revenue-top">
-          <div>
-            <div class="mobile-revenue-label">Receita Total de Serviços</div>
-            <div class="mobile-revenue-value">${fmtBRL(totalVal)}</div>
-          </div>
-          <div class="mobile-revenue-meta">
-            <div>${fmtQtd(totalLinhas)} serviços</div>
-            <div>Ticket: ${fmtBRL(ticket)}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="mobile-kpi-grid">
-        ${cards.map(c => `
-          <div class="mobile-kpi-card ${c.alert ? 'alert' : ''} ${c.money ? 'kpi-money' : ''}"
-               style="--mobile-kpi-color:${c.alert ? '#ef4444' : `var(--${c.color})`}">
-            <div class="mobile-kpi-head">
-              <span class="mobile-kpi-icon">${c.icon}</span>
-            </div>
-            <div class="mobile-kpi-value">${c.value}</div>
-            <div class="mobile-kpi-label">${c.mobileLabel}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
   document.getElementById('kpi-master').innerHTML = cards.map(c => {
     const alertStyle = c.alert ? 'border-color:#ef4444;background:#fef2f2;' : `border-color:var(--${c.color});`;
     const valColor   = c.alert ? 'color:#ef4444;' : '';
@@ -1212,6 +1180,75 @@ function renderKpiMaster(services, visits) {
       <div style="font-size:1.35rem;color:#4b5563;margin-top:8px;font-weight:700;line-height:1.25">${c.label}</div>
     </div>`;
   }).join('');
+
+
+  /*
+   * MOBILE = ESPELHO DO DESKTOP
+   * Não recalcula, não soma e não consulta a base novamente.
+   * Apenas lê os valores que já foram renderizados no desktop.
+   */
+  const mobileExecutive = document.getElementById('mobile-executive');
+  if (mobileExecutive) {
+    const desktopRevenue = document.getElementById('receita-total-destaque')?.textContent || '—';
+    const desktopLines   = document.getElementById('destaque-linhas')?.textContent || '—';
+    const desktopTicket  = document.getElementById('destaque-ticket')?.textContent || '—';
+
+    const desktopCards = [...document.querySelectorAll('#kpi-master > .kpi-card')];
+
+    const mobileCards = desktopCards.map((el, index) => {
+      const value = el.children[1]?.textContent?.trim() || '—';
+
+      const mobileLabels = [
+        'Serviços vendidos',
+        'Visitas técnicas',
+        'Receita serviços',
+        'Vendedores',
+        'Seções com serviço',
+        'Seções sem venda'
+      ];
+
+      const icons = ['🛠', '🔍', '💰', '👤', '📂', '⚠️'];
+      const colors = ['#44823C', '#44823C', '#253B35', '#253B35', '#9EA5B6', '#ef4444'];
+      const isAlert = index === 5;
+
+      return {
+        value,
+        label: mobileLabels[index] || el.children[2]?.textContent?.trim() || '',
+        icon: icons[index] || '',
+        color: colors[index] || '#44823C',
+        alert: isAlert,
+        money: index === 2
+      };
+    });
+
+    mobileExecutive.innerHTML = `
+      <div class="mobile-revenue-card">
+        <div class="mobile-revenue-top">
+          <div>
+            <div class="mobile-revenue-label">Receita Total de Serviços</div>
+            <div class="mobile-revenue-value">${desktopRevenue}</div>
+          </div>
+          <div class="mobile-revenue-meta">
+            <div>${desktopLines}</div>
+            <div>${desktopTicket}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mobile-kpi-grid">
+        ${mobileCards.map(c => `
+          <div class="mobile-kpi-card ${c.alert ? 'alert' : ''} ${c.money ? 'kpi-money' : ''}"
+               style="--mobile-kpi-color:${c.color}">
+            <div class="mobile-kpi-head">
+              <span class="mobile-kpi-icon">${c.icon}</span>
+            </div>
+            <div class="mobile-kpi-value">${c.value}</div>
+            <div class="mobile-kpi-label">${c.label}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
 }
 
 // ───────────────────────────────────────────────
