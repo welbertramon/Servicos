@@ -1144,16 +1144,47 @@ function getSecao(row) {
 // DATA LOADING — via Google Apps Script
 // ───────────────────────────────────────────────
 async function loadData() {
-  let url = APPS_SCRIPT_URL + '?cb=' + Date.now();
+  const session = getValidGoogleSession();
+
+  if (!session || !session.idToken) {
+    sessionStorage.removeItem(SESSION_KEY);
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    showLoginError('Sua sessão expirou. Entre novamente com sua conta Google corporativa.');
+    initGoogleLogin();
+    return;
+  }
+
   setLoading(true);
 
   try {
-    const res = await fetch(url, { cache: 'no-store' });
+    // Envia o token por POST para evitar expô-lo na URL.
+    const body = new URLSearchParams();
+    body.set('id_token', session.idToken);
+
+    const res = await fetch(APPS_SCRIPT_URL + '?cb=' + Date.now(), {
+      method: 'POST',
+      body,
+      cache: 'no-store',
+      redirect: 'follow'
+    });
+
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const json = await res.json();
 
+    // O backend é a autoridade final sobre a autenticação.
+    if (json.codigo === 'AUTH') {
+      sessionStorage.removeItem(SESSION_KEY);
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+      showLoginError(json.erro || 'Sessão inválida. Entre novamente.');
+      initGoogleLogin();
+      return;
+    }
+
     if (json.erro) throw new Error(json.erro);
+
     if (!json.rows || json.rows.length === 0) {
       showMsgInfo('Sem dados. Use o botão de Importar para carregar seus dados.');
       return;
@@ -1169,7 +1200,9 @@ async function loadData() {
     const svcCount = rawData.filter(r => isService(r)).length;
     const importedLojas = Object.keys(storeData);
     const extraInfo = importedLojas.length ? ` + ${importedLojas.length} loja(s) importada(s)` : '';
-    document.getElementById('last-update').textContent = `Atualizado: ${ts} — ${svcCount} serviços${extraInfo}`;
+    document.getElementById('last-update').textContent =
+      `Atualizado: ${ts} — ${svcCount} serviços${extraInfo}`;
+
     showToast(`✅ ${svcCount} serviços carregados!`, 'green');
 
   } catch (e) {
@@ -2563,6 +2596,8 @@ function handleGoogleCredential(response) {
     sub: payload.sub,
     email: String(payload.email || '').toLowerCase(),
     hd: String(payload.hd || '').toLowerCase(),
+    exp: Number(payload.exp || 0),
+    idToken: token,
     createdAt: Date.now()
   };
 
@@ -2617,7 +2652,10 @@ function getValidGoogleSession() {
     const raw = sessionStorage.getItem(SESSION_KEY);
     if (!raw) return null;
     const s = JSON.parse(raw);
+    const now = Math.floor(Date.now() / 1000);
     const valid = s &&
+      s.idToken &&
+      Number(s.exp || 0) > (now + 30) &&
       s.email && String(s.email).toLowerCase().endsWith('@' + ALLOWED_GOOGLE_DOMAIN) &&
       String(s.hd || '').toLowerCase() === ALLOWED_GOOGLE_DOMAIN;
     return valid ? s : null;
