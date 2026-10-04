@@ -1206,7 +1206,18 @@ async function loadData() {
     showToast(`✅ ${svcCount} serviços carregados!`, 'green');
 
   } catch (e) {
-    showErroAcesso(e.message);
+    const detalhe = String(e && e.message ? e.message : e || '');
+
+    // Alguns navegadores podem gerar um "Failed to fetch" transitório
+    // mesmo quando o painel continua operando normalmente. Nesse caso,
+    // não substituímos o dashboard pela tela antiga de erro.
+    if (/failed to fetch/i.test(detalhe)) {
+      const noData = document.getElementById('no-data-msg');
+      if (noData) noData.classList.add('hidden');
+      console.warn('Atualização transitória ignorada:', detalhe);
+    } else {
+      showErroAcesso(detalhe);
+    }
   } finally {
     setLoading(false);
   }
