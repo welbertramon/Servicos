@@ -17,7 +17,7 @@
 //
 // "Qualquer pessoa" é necessário para o endpoint receber a requisição
 // do GitHub Pages. A proteção dos dados é feita abaixo pela validação
-// do token Google antes de ler a planilha.
+// criptográfica do token Google antes de ler a planilha.
 //
 // ─────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ const ALLOWED_GOOGLE_DOMAIN = 'leroymerlin.com.br';
 // Opcional: se preferir não usar Propriedades do Script,
 // cole o mesmo Client ID do HTML aqui.
 const GOOGLE_CLIENT_ID_FALLBACK =
-  'COLE_SEU_CLIENT_ID_GOOGLE_AQUI.apps.googleusercontent.com';
+  '1050044391110-ph3s38gtb39sumb0g1cvisehao9d44is.apps.googleusercontent.com';
 
 
 // GET não entrega mais os dados.
@@ -79,7 +79,7 @@ function validarGoogleIdToken(idToken) {
 
     const clientId = getGoogleClientId();
 
-    // O endpoint tokeninfo do Google valida o ID token.
+    // O endpoint tokeninfo do Google valida assinatura e estrutura do ID token.
     const url =
       'https://oauth2.googleapis.com/tokeninfo?id_token=' +
       encodeURIComponent(idToken);
