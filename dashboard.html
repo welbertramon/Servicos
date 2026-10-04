@@ -691,6 +691,19 @@
 }
 </style>
 
+
+<style>
+/* Destaque verde para o card Venda de Serviços */
+.mobile-kpi-card.kpi-money {
+  background: linear-gradient(135deg, #253B35 0%, #44823C 100%) !important;
+  border-left-color: #BCE05E !important;
+}
+.mobile-kpi-card.kpi-money .mobile-kpi-value,
+.mobile-kpi-card.kpi-money .mobile-kpi-label {
+  color: #ffffff !important;
+}
+</style>
+
 </head>
 <body>
 
@@ -1456,16 +1469,24 @@ function renderKpiMaster(services, visits) {
 
 
   document.getElementById('kpi-master').innerHTML = cards.map(c => {
-    const alertStyle = c.alert ? 'border-color:#ef4444;background:#fef2f2;' : `border-color:var(--${c.color});`;
-    const valColor   = c.alert ? 'color:#ef4444;' : '';
+    const alertStyle = c.alert
+      ? 'border-color:#ef4444;background:#fef2f2;'
+      : c.money
+        ? 'border-color:#BCE05E;background:linear-gradient(135deg,#253B35 0%,#44823C 100%);'
+        : `border-color:var(--${c.color});`;
+    const valColor   = c.alert ? 'color:#ef4444;' : c.money ? 'color:#ffffff;' : '';
+    const labelColor = c.money ? '#ffffff' : '#4b5563';
+    const badgeStyle = c.money
+      ? 'background:rgba(255,255,255,.16);color:#d9f99d;font-size:1rem;padding:4px 12px'
+      : `background:var(--${c.color}-light);color:var(--${c.color});font-size:1rem;padding:4px 12px`;
     return `
     <div class="kpi-card bg-white rounded-2xl shadow-sm p-5 border-l-4" style="${alertStyle}">
       <div class="flex items-center justify-between mb-3">
         <span class="text-3xl">${c.icon}</span>
-        ${c.sub ? `<span class="badge" style="background:var(--${c.color}-light);color:var(--${c.color});font-size:1rem;padding:4px 12px">${c.sub}</span>` : ''}
+        ${c.sub ? `<span class="badge" style="${badgeStyle}">${c.sub}</span>` : ''}
       </div>
-      <div style="font-size:2.4rem;font-weight:700;line-height:1.1;${valColor}color:${c.alert?'#ef4444':'#1f2937'}">${c.value}</div>
-      <div style="font-size:1.35rem;color:#4b5563;margin-top:8px;font-weight:700;line-height:1.25">${c.label}</div>
+      <div style="font-size:2.4rem;font-weight:700;line-height:1.1;${valColor}color:${c.alert?'#ef4444':(c.money?'#ffffff':'#1f2937')}">${c.value}</div>
+      <div style="font-size:1.35rem;color:${labelColor};margin-top:8px;font-weight:700;line-height:1.25">${c.label}</div>
     </div>`;
   }).join('');
 
